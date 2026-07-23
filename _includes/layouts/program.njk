@@ -1,0 +1,65 @@
+---
+layout: layouts/base.njk
+---
+<section class="subject-masthead">
+  <div class="page-shell subject-masthead-inner">
+    <div class="subject-kicker">{{ shortTitle or title }}</div>
+    <div class="subject-title-frame">
+      <h1>{{ displayTitle or title }}</h1>
+    </div>
+    {% if summary %}
+      <p class="subject-summary">{{ summary }}</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="page-shell subject-grid-wrap">
+  <div class="subject-grid">
+    {% for group in schoolGroups %}
+      <article class="subject-column">
+        <div class="subject-column-head">
+          {% if group.icon %}
+            <span class="subject-icon" aria-hidden="true">{{ group.icon }}</span>
+          {% endif %}
+          <div>
+            <h2>{{ group.title }}</h2>
+            {% if group.subtitle %}
+              <p>{{ group.subtitle }}</p>
+            {% endif %}
+          </div>
+        </div>
+        <div class="subject-links">
+          {% for link in group.links %}
+            <a class="subject-link" href="{{ link.url }}">{{ link.label }}</a>
+          {% endfor %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="page-shell subject-info-panel">
+  <div class="subject-info-copy">
+    <h2 class="section-title">Current updates</h2>
+    {% if lead %}
+      <p>{{ lead }}</p>
+    {% endif %}
+    <div class="content-body">
+      {{ content | safe }}
+    </div>
+  </div>
+
+  {% if quickLinks %}
+    <aside class="subject-side-panel">
+      <h2>Useful links</h2>
+      <div class="link-list">
+        {% for link in quickLinks %}
+          <a class="link-card" href="{{ link.url }}">
+            <strong>{{ link.label }}</strong>
+            <span>{{ link.description }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </aside>
+  {% endif %}
+</section>
