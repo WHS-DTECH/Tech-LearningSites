@@ -10,7 +10,7 @@ schoolGroups:
     subtitle: Foundational design and visual ideas
     icon: ✏️
     links:
-      - label: DVC - Junior Design
+      - label: JDVC - Junior Design
         url: "#"
   - title: Middle School
     subtitle: Semester and option courses
