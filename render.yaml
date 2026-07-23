@@ -1,7 +1,7 @@
 services:
   - type: web
     name: whs-learning-site
-    runtime: static
-    buildCommand: npm run build
-    staticPublishPath: dist
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     pullRequestPreviewsEnabled: true
