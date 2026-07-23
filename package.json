@@ -1,6 +1,9 @@
 {
   "name": "whs-learning-site",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "eleventy --serve",
     "build": "eleventy"
