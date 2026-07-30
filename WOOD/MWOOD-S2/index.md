@@ -12,13 +12,13 @@ assessments:
   - code: demonstrating an understanding of basic woodworking principles.
   - code: Safely and accurately use basic hand tools to cut, shape, and join wood.
 assessmentLinks:
-  - label: 29777 - Database
+  - label: Health & Safety
     url: "#"
-  - label: 92013 - Experiment
+  - label: Woodwork Principles
     url: "#"
-  - label: 92012 - Prototype
+  - label: Wordwork Tools
     url: "#"
-  - label: Woodwork resources
+  - label: Woodwork Project
     url: "#"
 statement:
   title: Assessment statement
