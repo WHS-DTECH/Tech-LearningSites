@@ -29,7 +29,7 @@ assessmentGroup:
 statement:
   title: Assessment statement
   open: true
-  downloadUrl: "#"
+  embedUrl: "/WOOD/MWOOD-S2/Course%20Outline%20%26%20Assessment%20Statements/MWOOD-S2.pdf"
 permalink: /WOOD/MWOOD-S2/
 ---
 ## Current project
