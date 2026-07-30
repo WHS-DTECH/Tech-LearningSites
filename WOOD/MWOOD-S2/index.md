@@ -20,6 +20,12 @@ assessmentLinks:
     url: "#"
   - label: Woodwork Project
     url: "#"
+  - label: Practical Skills
+    url: "#"
+assessmentGroup:
+  start: 2
+  end: 4
+  ariaLabel: Assessment-related links
 statement:
   title: Assessment statement
   open: true

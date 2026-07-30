@@ -47,9 +47,28 @@ layout: layouts/base.njk
 
   {% if assessmentLinks %}
     <nav class="course-chip-row" aria-label="Course resources">
-      {% for link in assessmentLinks %}
-        <a class="course-chip" href="{{ link.url }}">{{ link.label }}</a>
-      {% endfor %}
+      {% if assessmentGroup %}
+        {% for link in assessmentLinks %}
+          {% if loop.index == assessmentGroup.start %}
+            <div class="course-chip-group" aria-label="{{ assessmentGroup.ariaLabel or 'Assessment links' }}">
+          {% endif %}
+
+          <a
+            class="course-chip{% if loop.index >= assessmentGroup.start and loop.index <= assessmentGroup.end %} course-chip-assessment{% endif %}"
+            href="{{ link.url }}"
+          >
+            {{ link.label }}
+          </a>
+
+          {% if loop.index == assessmentGroup.end %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        {% for link in assessmentLinks %}
+          <a class="course-chip" href="{{ link.url }}">{{ link.label }}</a>
+        {% endfor %}
+      {% endif %}
     </nav>
   {% endif %}
 
