@@ -5,7 +5,15 @@ layout: layouts/base.njk
   <div class="page-shell course-masthead-inner">
     <div class="course-kicker">{{ shortTitle or title }}</div>
     <div class="course-title-frame">
-      <h1>{{ displayTitle or title }}</h1>
+      <h1>
+        {% if titleLines %}
+          {% for line in titleLines %}
+            <span class="course-title-line">{{ line }}</span>
+          {% endfor %}
+        {% else %}
+          {{ displayTitle or title }}
+        {% endif %}
+      </h1>
     </div>
     {% if summary %}
       <p class="course-summary">{{ summary }}</p>

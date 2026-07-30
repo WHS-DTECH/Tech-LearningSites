@@ -2,7 +2,9 @@
 layout: layouts/course.njk
 title: MWOOD Semester 2 | WOOD
 shortTitle: Technology Learning Area
-displayTitle: Woodwork with Miss Pringle
+titleLines:
+  - MWOOD
+  - Woodwork
 summary: MWOOD Semester 2 course page with assessments, resources, and project statements.
 lead: Keep this page current with weekly build tasks, safety expectations, and assessment checkpoints.
 assessments:

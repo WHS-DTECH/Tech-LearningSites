@@ -516,6 +516,10 @@ img {
   line-height: 1;
 }
 
+.course-title-line {
+  display: block;
+}
+
 .course-summary {
   width: min(100%, 760px);
   margin: 0;
