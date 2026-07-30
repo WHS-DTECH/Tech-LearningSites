@@ -11,25 +11,25 @@ schoolGroups:
     icon: ✏️
     links:
       - label: JDVC - Junior Design
-        url: "#"
+        url: "/DVC/JDVC/"
   - title: Middle School
     subtitle: Semester and option courses
     icon: 📐
     links:
       - label: MDVC - Semester 1
-        url: "#"
+        url: "/DVC/MDVC-S1/"
       - label: MDVC - Semester 2
-        url: "#"
+        url: "/DVC/MDVC-S2/"
   - title: Senior School
     subtitle: DVC and portfolio pathways
     icon: 🏗️
     links:
       - label: 11DVC - Year 11 DVC
-        url: "#"
+        url: "/DVC/11DVC/"
       - label: 12DVC - Year 12 DVC
-        url: "#"
+        url: "/DVC/12DVC/"
       - label: 13DVC - Year 13 DVC
-        url: "#"
+        url: "/DVC/13DVC/"
 quickLinks:
   - label: Current brief
     url: "#"

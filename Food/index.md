@@ -11,25 +11,25 @@ schoolGroups:
     icon: 🍽️
     links:
       - label: JFOOD - Junior Food
-        url: "#"
+        url: "/Food/JFOOD/"
   - title: Middle School
     subtitle: Practical semester courses
     icon: 🧑‍🍳
     links:
       - label: MFOOD - Semester 1
-        url: "#"
+        url: "/Food/MFOOD-S1/"
       - label: MFOOD - Semester 2
-        url: "#"
+        url: "/Food/MFOOD-S2/"
   - title: Senior School
     subtitle: Hospitality and nutrition pathways
     icon: 🍳
     links:
       - label: 11HOSP - Year 11 Hospitality
-        url: "#"
+        url: "/Food/11HOSP/"
       - label: 12HOSP - Year 12 Hospitality
-        url: "#"
+        url: "/Food/12HOSP/"
       - label: 13HOSP - Year 13 Hospitality
-        url: "#"
+        url: "/Food/13HOSP/"
 quickLinks:
   - label: Recipe bank
     url: "#"

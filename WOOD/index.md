@@ -11,25 +11,25 @@ schoolGroups:
     icon: 🪵
     links:
       - label: JWOOD - Junior Wood
-        url: "#"
+        url: "/WOOD/JWOOD/"
   - title: Middle School
     subtitle: Skills and semester courses
     icon: 🪚
     links:
       - label: MWOOD - Semester 1
-        url: "#"
+        url: "/WOOD/MWOOD-S1/"
       - label: MWOOD - Semester 2
-        url: "#"
+        url: "/WOOD/MWOOD-S2/"
   - title: Senior School
     subtitle: Furniture pathways and builds
     icon: 🪑
     links:
       - label: 11FURN - Year 11 Furniture
-        url: "#"
+        url: "/WOOD/11FURN/"
       - label: 12FURN - Year 12 Furniture
-        url: "#"
+        url: "/WOOD/12FURN/"
       - label: 13FURN - Year 13 Furniture
-        url: "#"
+        url: "/WOOD/13FURN/"
 quickLinks:
   - label: Workshop safety
     url: "#"

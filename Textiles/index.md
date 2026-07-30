@@ -11,25 +11,25 @@ schoolGroups:
     icon: 🧵
     links:
       - label: JTEXT - Junior Textiles
-        url: "#"
+        url: "/Textiles/JTEXT/"
   - title: Middle School
     subtitle: Semester and option courses
     icon: 🪡
     links:
       - label: MTEXT - Semester 1
-        url: "#"
+        url: "/Textiles/MTEXT-S1/"
       - label: MTEXT - Semester 2
-        url: "#"
+        url: "/Textiles/MTEXT-S2/"
   - title: Senior School
     subtitle: NCEA project pathways
     icon: 👗
     links:
       - label: 11TEXT - Year 11 Textiles
-        url: "#"
+        url: "/Textiles/11TEXT/"
       - label: 12TEXT - Year 12 Textiles
-        url: "#"
+        url: "/Textiles/12TEXT/"
       - label: 13TEXT - Year 13 Textiles
-        url: "#"
+        url: "/Textiles/13TEXT/"
 quickLinks:
   - label: Pattern resources
     url: "#"

@@ -1,0 +1,83 @@
+---
+layout: layouts/base.njk
+---
+<section class="course-masthead">
+  <div class="page-shell course-masthead-inner">
+    <div class="course-kicker">{{ shortTitle or title }}</div>
+    <div class="course-title-frame">
+      <h1>{{ displayTitle or title }}</h1>
+    </div>
+    {% if summary %}
+      <p class="course-summary">{{ summary }}</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="page-shell course-panel">
+  {% if assessments %}
+    <div class="course-block course-assessments">
+      <h2>Assessments</h2>
+      <ul>
+        {% for item in assessments %}
+          <li>
+            {% if item.url %}
+              <a href="{{ item.url }}">{{ item.code }}</a>
+            {% else %}
+              <span>{{ item.code }}</span>
+            {% endif %}
+            {% if item.text %}
+              <span> {{ item.text }}</span>
+            {% endif %}
+            {% if item.credits %}
+              <span> - {{ item.credits }} credits</span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  {% if assessmentLinks %}
+    <nav class="course-chip-row" aria-label="Course resources">
+      {% for link in assessmentLinks %}
+        <a class="course-chip" href="{{ link.url }}">{{ link.label }}</a>
+      {% endfor %}
+    </nav>
+  {% endif %}
+
+  <details class="course-statement" {% if statement and statement.open %}open{% endif %}>
+    <summary>
+      <span>{{ statement.title or "Assessment statement" }}</span>
+      <span class="course-chevron" aria-hidden="true"></span>
+    </summary>
+
+    <div class="course-statement-body">
+      {% if statement and statement.embedUrl %}
+        <div class="course-embed-frame">
+          <iframe
+            src="{{ statement.embedUrl }}"
+            title="{{ statement.title or 'Assessment statement' }}"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+          ></iframe>
+        </div>
+      {% elif statement and statement.downloadUrl %}
+        <p>
+          Assessment statement available here:
+          <a href="{{ statement.downloadUrl }}">Open statement document</a>
+        </p>
+      {% else %}
+        <p>Add an embedUrl or downloadUrl in this page frontmatter to show the statement file.</p>
+      {% endif %}
+    </div>
+  </details>
+
+  <div class="course-body">
+    {% if lead %}
+      <p class="course-lead">{{ lead }}</p>
+    {% endif %}
+    <div class="content-body">
+      {{ content | safe }}
+    </div>
+  </div>
+</section>

@@ -11,25 +11,25 @@ schoolGroups:
     icon: 💻
     links:
       - label: JDTECH - Junior Digital Tech
-        url: "#"
+        url: "/DTECH/JDTECH/"
   - title: Middle School
     subtitle: Semester and option courses
     icon: 🖥️
     links:
       - label: MDTECH - Semester 1
-        url: "#"
+        url: "/DTECH/MDTECH-S1/"
       - label: MDTECH - Semester 2
-        url: "#"
+        url: "/DTECH/MDTECH-S2/"
   - title: Senior School
     subtitle: Specialist digital pathways
     icon: ⌨️
     links:
       - label: 11DTECH - Year 11 Digital Tech
-        url: "#"
+        url: "/DTECH/11DTECH/"
       - label: 12DTECH - Year 12 Digital Tech
-        url: "#"
+        url: "/DTECH/12DTECH/"
       - label: 13DTECH - Year 13 Digital Tech
-        url: "#"
+        url: "/DTECH/13DTECH/"
 quickLinks:
   - label: Course outline
     url: "#"
