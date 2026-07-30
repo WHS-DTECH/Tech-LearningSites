@@ -8,7 +8,8 @@ titleLines:
 summary: MWOOD Semester 2 course page with assessments, resources, and project statements.
 lead: Keep this page current with weekly build tasks, safety expectations, and assessment checkpoints.
 assessments:
-  - code: Design, plan, and create a simple wooden project, demonstrating an understanding of basic woodworking principles.
+  - code: Design, plan, and create a simple wooden project.
+  - code: demonstrating an understanding of basic woodworking principles.
   - code: Safely and accurately use basic hand tools to cut, shape, and join wood.
 assessmentLinks:
   - label: 29777 - Database
