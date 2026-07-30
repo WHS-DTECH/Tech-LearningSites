@@ -8,15 +8,8 @@ titleLines:
 summary: MWOOD Semester 2 course page with assessments, resources, and project statements.
 lead: Keep this page current with weekly build tasks, safety expectations, and assessment checkpoints.
 assessments:
-  - code: 92013
-    text: Experiment with different materials to develop a Materials and Processing Technology outcome.
-    credits: 6
-  - code: 92012
-    text: Develop a Materials and Processing Technology outcome in an authentic context.
-    credits: 6
-  - code: 29777
-    text: Use the main features and functions of a database application to create and test a database.
-    credits: 3
+  - code: Design, plan, and create a simple wooden project, demonstrating an understanding of basic woodworking principles.
+  - code: Safely and accurately use basic hand tools to cut, shape, and join wood.
 assessmentLinks:
   - label: 29777 - Database
     url: "#"
