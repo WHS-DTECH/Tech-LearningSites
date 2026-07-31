@@ -200,6 +200,7 @@ async function initAdminSchema() {
 
   await seedSubjectsAndCourses();
   await seedDefaultTermRequirements(new Date().getUTCFullYear());
+  await resetMwoodS2ContentFromPageIfNeeded(new Date().getUTCFullYear());
   await applyEvidenceOverrides(new Date().getUTCFullYear());
   initialized = true;
 }
@@ -672,6 +673,133 @@ function hasMwoodS2Evidence() {
   const hasAssessments = content.includes("assessments:");
   const hasStatement = content.includes("statement:");
   return hasAssessments && hasStatement;
+}
+
+function parseFrontMatterValue(raw) {
+  const value = String(raw || "").trim();
+  if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
+    return value.slice(1, -1).trim();
+  }
+
+  return value;
+}
+
+function getMwoodS2PageEvidence() {
+  const mwoodPath = path.join(__dirname, "..", "WOOD", "MWOOD-S2", "index.md");
+  if (!fs.existsSync(mwoodPath)) {
+    return null;
+  }
+
+  const content = fs.readFileSync(mwoodPath, "utf8");
+  const assessmentsSectionMatch = content.match(/\nassessments:\n([\s\S]*?)\nassessmentLinks:\n/);
+  const linksSectionMatch = content.match(/\nassessmentLinks:\n([\s\S]*?)\nassessmentGroup:\n/);
+
+  const assessments = [];
+  if (assessmentsSectionMatch) {
+    const assessmentMatches = assessmentsSectionMatch[1].matchAll(/-\s*code:\s*(.+)/g);
+    for (const match of assessmentMatches) {
+      const value = parseFrontMatterValue(match[1]);
+      if (value) {
+        assessments.push(value);
+      }
+    }
+  }
+
+  const assessmentLinks = [];
+  if (linksSectionMatch) {
+    const linkMatches = linksSectionMatch[1].matchAll(/-\s*label:\s*(.+)\n\s*url:\s*(.+)/g);
+    for (const match of linkMatches) {
+      const label = parseFrontMatterValue(match[1]);
+      const url = parseFrontMatterValue(match[2]) || "#";
+      if (label) {
+        assessmentLinks.push({ label, url });
+      }
+    }
+  }
+
+  let statementFileName = null;
+  let statementPdf = null;
+  const embedUrlMatch = content.match(/\n\s*embedUrl:\s*(.+)/);
+  if (embedUrlMatch) {
+    const embedUrl = parseFrontMatterValue(embedUrlMatch[1]);
+    if (embedUrl && embedUrl.startsWith("/") && embedUrl.toLowerCase().endsWith(".pdf")) {
+      const localPdfPath = path.join(__dirname, "..", decodeURIComponent(embedUrl.replace(/^\/+/, "")));
+      if (fs.existsSync(localPdfPath)) {
+        statementPdf = fs.readFileSync(localPdfPath);
+        statementFileName = path.basename(localPdfPath);
+      }
+    }
+  }
+
+  return {
+    assessments,
+    assessmentLinks,
+    statementFileName,
+    statementPdf
+  };
+}
+
+async function resetMwoodS2ContentFromPageIfNeeded(schoolYear) {
+  const courseCode = "MWOOD-S2";
+  await ensureCourseContentRow(courseCode);
+
+  const result = await query(
+    `
+      SELECT assessments, assessment_links, statement_pdf IS NOT NULL AS has_statement_pdf
+      FROM admin_course_content
+      WHERE course_code = $1
+      LIMIT 1
+    `,
+    [courseCode]
+  );
+
+  if (!result.rows.length) {
+    return;
+  }
+
+  const row = result.rows[0];
+  const currentAssessments = Array.isArray(row.assessments) ? row.assessments : [];
+  const currentLinks = Array.isArray(row.assessment_links) ? row.assessment_links : [];
+  const assessmentsLookDefault = currentAssessments.length === 0 || currentAssessments.every((item) => hasPlaceholderText(item));
+  const linksLookDefault = currentLinks.length === 0 || currentLinks.every((link) => !isValidLink(link));
+  const needsReset = assessmentsLookDefault || linksLookDefault || !row.has_statement_pdf;
+
+  if (!needsReset) {
+    return;
+  }
+
+  const evidence = getMwoodS2PageEvidence();
+  if (!evidence || !evidence.assessments.length || !evidence.assessmentLinks.length) {
+    return;
+  }
+
+  const assessments = normalizeAssessments(evidence.assessments);
+  const assessmentLinks = applyLockedLinkLabels(courseCode, normalizeAssessmentLinks(evidence.assessmentLinks));
+  const actorName = "page-evidence: MWOOD-S2";
+
+  await query(
+    `
+      UPDATE admin_course_content
+      SET assessments = $2::jsonb,
+          assessment_links = $3::jsonb,
+          statement_filename = COALESCE($4, statement_filename),
+          statement_mime = CASE WHEN $5::bytea IS NOT NULL THEN 'application/pdf' ELSE statement_mime END,
+          statement_pdf = COALESCE($5, statement_pdf),
+          updated_at = NOW(),
+          updated_by = $6
+      WHERE course_code = $1
+    `,
+    [
+      courseCode,
+      JSON.stringify(assessments),
+      JSON.stringify(assessmentLinks),
+      evidence.statementFileName,
+      evidence.statementPdf,
+      actorName
+    ]
+  );
+
+  await syncCourseRequirementFromContent(courseCode, actorName, schoolYear);
 }
 
 async function applyEvidenceOverrides(year) {
