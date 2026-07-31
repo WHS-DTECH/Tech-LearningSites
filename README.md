@@ -33,9 +33,22 @@ npm run dev
 The app now includes a backend API for admin update tracking.
 
 - `GET /api/admin/health`
+- `GET /api/admin/session`
+- `POST /api/admin/login`
+- `POST /api/admin/logout`
 - `GET /api/admin/dashboard?year=2026&term=T1`
 - `GET /api/admin/courses?year=2026&term=T1&subject=DTECH&status=red`
 - `POST /api/admin/courses/status`
+
+Login payload:
+
+```json
+{
+  "apiKey": "your-admin-api-key"
+}
+```
+
+On successful login, the server sets an HTTP-only session cookie used by the dashboard requests.
 
 Example payload for status updates:
 

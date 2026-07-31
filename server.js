@@ -1,6 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 const {
   getPool,
   initAdminSchema,
@@ -11,6 +12,8 @@ const {
 
 const port = process.env.PORT || 3000;
 const distDir = path.join(__dirname, "dist");
+const ADMIN_COOKIE_NAME = "whs_admin_session";
+const ADMIN_SESSION_TTL_SECONDS = 60 * 60 * 8;
 
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
@@ -59,9 +62,82 @@ function resolveRequestPath(urlPath) {
   return filePath;
 }
 
-function sendJson(response, statusCode, payload) {
-  response.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
+function sendJson(response, statusCode, payload, extraHeaders = {}) {
+  response.writeHead(statusCode, {
+    "Content-Type": "application/json; charset=utf-8",
+    ...extraHeaders
+  });
   response.end(JSON.stringify(payload));
+}
+
+function parseCookies(request) {
+  const header = request.headers.cookie;
+
+  if (!header) {
+    return {};
+  }
+
+  return header.split(";").reduce((acc, part) => {
+    const [rawKey, ...rest] = part.trim().split("=");
+    if (!rawKey) {
+      return acc;
+    }
+
+    acc[rawKey] = decodeURIComponent(rest.join("="));
+    return acc;
+  }, {});
+}
+
+function getSessionSecret() {
+  return process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_API_KEY || "local-dev-admin-secret";
+}
+
+function signSessionPayload(payload) {
+  return crypto.createHmac("sha256", getSessionSecret()).update(payload).digest("hex");
+}
+
+function createSessionToken() {
+  const expiresAt = Date.now() + ADMIN_SESSION_TTL_SECONDS * 1000;
+  const payload = String(expiresAt);
+  const signature = signSessionPayload(payload);
+  return `${payload}.${signature}`;
+}
+
+function safeCompare(a, b) {
+  const left = Buffer.from(String(a));
+  const right = Buffer.from(String(b));
+
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(left, right);
+}
+
+function verifySessionToken(token) {
+  if (!token || !token.includes(".")) {
+    return false;
+  }
+
+  const [payload, signature] = token.split(".");
+  const expiresAt = Number.parseInt(payload, 10);
+
+  if (!Number.isFinite(expiresAt) || Date.now() > expiresAt) {
+    return false;
+  }
+
+  const expectedSignature = signSessionPayload(payload);
+  return safeCompare(signature, expectedSignature);
+}
+
+function createSessionCookie(token) {
+  const secureFlag = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  return `${ADMIN_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${ADMIN_SESSION_TTL_SECONDS}${secureFlag}`;
+}
+
+function clearSessionCookie() {
+  const secureFlag = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  return `${ADMIN_COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secureFlag}`;
 }
 
 function isAdminAuthorized(request) {
@@ -72,7 +148,12 @@ function isAdminAuthorized(request) {
   }
 
   const providedKey = request.headers["x-admin-key"];
-  return providedKey && providedKey === configuredKey;
+  if (providedKey && providedKey === configuredKey) {
+    return true;
+  }
+
+  const cookies = parseCookies(request);
+  return verifySessionToken(cookies[ADMIN_COOKIE_NAME]);
 }
 
 async function readJsonBody(request) {
@@ -104,6 +185,58 @@ async function readJsonBody(request) {
 }
 
 async function handleAdminApi(request, response, requestUrl) {
+  const { pathname, searchParams } = requestUrl;
+
+  if (request.method === "POST" && pathname === "/api/admin/login") {
+    const configuredKey = process.env.ADMIN_API_KEY;
+
+    if (!configuredKey) {
+      sendJson(response, 503, {
+        ok: false,
+        error: "ADMIN_API_KEY is not configured"
+      });
+      return;
+    }
+
+    const body = await readJsonBody(request);
+
+    if (!body.apiKey || body.apiKey !== configuredKey) {
+      sendJson(response, 401, { ok: false, error: "Invalid admin key" });
+      return;
+    }
+
+    const token = createSessionToken();
+    sendJson(
+      response,
+      200,
+      { ok: true },
+      {
+        "Set-Cookie": createSessionCookie(token)
+      }
+    );
+    return;
+  }
+
+  if (request.method === "POST" && pathname === "/api/admin/logout") {
+    sendJson(
+      response,
+      200,
+      { ok: true },
+      {
+        "Set-Cookie": clearSessionCookie()
+      }
+    );
+    return;
+  }
+
+  if (request.method === "GET" && pathname === "/api/admin/session") {
+    sendJson(response, 200, {
+      ok: true,
+      authenticated: isAdminAuthorized(request)
+    });
+    return;
+  }
+
   if (!isAdminAuthorized(request)) {
     sendJson(response, 401, { ok: false, error: "Unauthorized" });
     return;
@@ -119,8 +252,6 @@ async function handleAdminApi(request, response, requestUrl) {
   }
 
   await initAdminSchema();
-
-  const { pathname, searchParams } = requestUrl;
 
   if (request.method === "GET" && pathname === "/api/admin/health") {
     sendJson(response, 200, { ok: true, db: "connected" });
