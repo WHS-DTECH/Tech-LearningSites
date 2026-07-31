@@ -171,8 +171,8 @@ layout: layouts/base.njk
         if (statementBody && data.statementUrl) {
           const frameWidth = statementBody.clientWidth || 1100;
           const landscapeA4Height = Math.round(frameWidth / 1.414); // A4 landscape ratio
-          const frameHeight = Math.max(420, Math.min(landscapeA4Height, 900));
-          const fitParams = "page=1&zoom=page-fit&view=FitH&pagemode=none";
+          const frameHeight = Math.max(640, Math.min(landscapeA4Height + 220, 1280));
+          const fitParams = "page=1&zoom=page-fit&view=FitH&pagemode=none&navpanes=0&toolbar=0&statusbar=0";
           const statementSrc = data.statementUrl.includes("#")
             ? `${data.statementUrl}&${fitParams}`
             : `${data.statementUrl}#${fitParams}`;
