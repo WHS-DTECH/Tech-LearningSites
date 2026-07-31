@@ -8,6 +8,7 @@ activitySection:
   title: "Activities Running This Week: 3 - 9 May"
   description: Click an activity to open the Textiles hub in a new tab. Detailed tasks stay in the hub so updates happen in one place.
   linkText: Open in Sewing Hub
+  linkUrl: "https://tech-sewing.onrender.com/index.html"
   openLabel: Open in Sewing Hub
   cards:
     - title: Material Sampler
