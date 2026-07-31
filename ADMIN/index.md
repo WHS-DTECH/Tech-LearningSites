@@ -88,6 +88,38 @@ permalink: /ADMIN/
       <tbody></tbody>
     </table>
   </div>
+
+  <h3 class="admin-subhead">11TEXT Uploader</h3>
+  <p class="admin-message">Use this uploader to update the 11TEXT course page content directly.</p>
+
+  <div class="admin-uploader-grid">
+    <article class="admin-uploader-card">
+      <h4>Area 1: Assessments List</h4>
+      <p>Enter one assessment per line.</p>
+      <textarea id="uploader-assessments" class="admin-uploader-textarea" rows="6" placeholder="Standard number and short assessment name"></textarea>
+    </article>
+
+    <article class="admin-uploader-card">
+      <h4>Area 2: Red Bordered Buttons</h4>
+      <p>Set the short label and destination URL for each button.</p>
+      <div id="uploader-links"></div>
+    </article>
+
+    <article class="admin-uploader-card">
+      <h4>Area 3: Assessment Statement PDF</h4>
+      <p>Upload the latest PDF statement for 11TEXT.</p>
+      <form id="uploader-pdf-form" class="admin-inline-form">
+        <input id="uploader-statement-pdf" type="file" accept="application/pdf">
+        <button type="submit" class="button-secondary">Upload PDF</button>
+      </form>
+      <p id="uploader-pdf-status" class="admin-message"></p>
+    </article>
+  </div>
+
+  <div class="admin-uploader-actions">
+    <button id="uploader-save-content" type="button" class="button">Save 11TEXT Content</button>
+    <p id="uploader-content-status" class="admin-message"></p>
+  </div>
 </section>
 
 <script>
@@ -101,6 +133,16 @@ permalink: /ADMIN/
   const summaryEl = document.getElementById("admin-summary");
   const subjectsEl = document.getElementById("admin-subjects");
   const coursesTableBody = document.querySelector("#admin-courses-table tbody");
+  const uploaderAssessments = document.getElementById("uploader-assessments");
+  const uploaderLinksWrap = document.getElementById("uploader-links");
+  const uploaderSaveContent = document.getElementById("uploader-save-content");
+  const uploaderContentStatus = document.getElementById("uploader-content-status");
+  const uploaderPdfForm = document.getElementById("uploader-pdf-form");
+  const uploaderPdfInput = document.getElementById("uploader-statement-pdf");
+  const uploaderPdfStatus = document.getElementById("uploader-pdf-status");
+
+  const UPLOADER_COURSE_CODE = "11TEXT";
+  const UPLOADER_LINK_ROWS = 5;
 
   const yearInput = document.getElementById("filter-year");
   const termInput = document.getElementById("filter-term");
@@ -126,12 +168,17 @@ permalink: /ADMIN/
   }
 
   async function apiRequest(path, options = {}) {
+    const headers = {
+      ...(options.headers || {})
+    };
+
+    if (!(options.body instanceof FormData) && !headers["Content-Type"]) {
+      headers["Content-Type"] = "application/json";
+    }
+
     const response = await fetch(path, {
       credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/json",
-        ...(options.headers || {})
-      },
+      headers,
       ...options
     });
 
@@ -142,6 +189,69 @@ permalink: /ADMIN/
     }
 
     return data;
+  }
+
+  function renderUploaderLinks(links) {
+    const safeLinks = Array.isArray(links) ? links : [];
+    const rows = [];
+
+    for (let i = 0; i < UPLOADER_LINK_ROWS; i += 1) {
+      const link = safeLinks[i] || { label: "", url: "#" };
+      rows.push(`
+        <div class="admin-uploader-link-row">
+          <input
+            type="text"
+            class="admin-inline-input"
+            data-link-field="label"
+            data-link-index="${i}"
+            value="${escapeHtml(link.label || "")}"
+            placeholder="Button ${i + 1} label"
+          >
+          <input
+            type="text"
+            class="admin-inline-input"
+            data-link-field="url"
+            data-link-index="${i}"
+            value="${escapeHtml(link.url || "#")}"
+            placeholder="https:// or #"
+          >
+        </div>
+      `);
+    }
+
+    uploaderLinksWrap.innerHTML = rows.join("");
+  }
+
+  function collectUploaderLinks() {
+    const output = [];
+
+    for (let i = 0; i < UPLOADER_LINK_ROWS; i += 1) {
+      const labelInput = uploaderLinksWrap.querySelector(`[data-link-field='label'][data-link-index='${i}']`);
+      const urlInput = uploaderLinksWrap.querySelector(`[data-link-field='url'][data-link-index='${i}']`);
+
+      const label = (labelInput?.value || "").trim();
+      const url = (urlInput?.value || "#").trim() || "#";
+
+      if (label) {
+        output.push({ label, url });
+      }
+    }
+
+    return output;
+  }
+
+  async function loadUploaderData() {
+    const data = await apiRequest(`/api/admin/course-content/${UPLOADER_COURSE_CODE}`);
+
+    const assessmentsText = (data.assessments || []).join("\n");
+    uploaderAssessments.value = assessmentsText;
+    renderUploaderLinks(data.assessmentLinks || []);
+
+    if (data.hasStatementPdf) {
+      setMessage(uploaderPdfStatus, `Current PDF: ${data.statementFilename || "uploaded"}`);
+    } else {
+      setMessage(uploaderPdfStatus, "No statement PDF uploaded yet.");
+    }
   }
 
   async function checkSession() {
@@ -275,6 +385,7 @@ permalink: /ADMIN/
 
       showDashboard();
       await loadDashboardData();
+      await loadUploaderData();
     } catch (error) {
       setMessage(loginMessage, error.message, true);
     }
@@ -337,6 +448,74 @@ permalink: /ADMIN/
     }
   });
 
+  uploaderSaveContent.addEventListener("click", async () => {
+    uploaderSaveContent.disabled = true;
+    uploaderSaveContent.textContent = "Saving...";
+    setMessage(uploaderContentStatus, "");
+
+    try {
+      const assessments = uploaderAssessments.value
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+      const assessmentLinks = collectUploaderLinks();
+
+      await apiRequest(`/api/admin/course-content/${UPLOADER_COURSE_CODE}`, {
+        method: "POST",
+        body: JSON.stringify({ assessments, assessmentLinks })
+      });
+
+      setMessage(uploaderContentStatus, "11TEXT content saved.");
+      uploaderSaveContent.textContent = "Saved";
+      setTimeout(() => {
+        uploaderSaveContent.textContent = "Save 11TEXT Content";
+      }, 1200);
+    } catch (error) {
+      setMessage(uploaderContentStatus, error.message, true);
+      uploaderSaveContent.textContent = "Save 11TEXT Content";
+    } finally {
+      uploaderSaveContent.disabled = false;
+    }
+  });
+
+  uploaderPdfForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    setMessage(uploaderPdfStatus, "");
+
+    const file = uploaderPdfInput.files?.[0];
+    if (!file) {
+      setMessage(uploaderPdfStatus, "Select a PDF first.", true);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("statementPdf", file);
+
+    const submitButton = uploaderPdfForm.querySelector("button[type='submit']");
+    submitButton.disabled = true;
+    submitButton.textContent = "Uploading...";
+
+    try {
+      await apiRequest(`/api/admin/course-content/${UPLOADER_COURSE_CODE}/statement`, {
+        method: "POST",
+        body: formData
+      });
+
+      setMessage(uploaderPdfStatus, `Uploaded ${file.name}`);
+      uploaderPdfInput.value = "";
+      submitButton.textContent = "Uploaded";
+      setTimeout(() => {
+        submitButton.textContent = "Upload PDF";
+      }, 1200);
+    } catch (error) {
+      setMessage(uploaderPdfStatus, error.message, true);
+      submitButton.textContent = "Upload PDF";
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
+
   (async () => {
     const authenticated = await checkSession();
 
@@ -348,6 +527,7 @@ permalink: /ADMIN/
     showDashboard();
     try {
       await loadDashboardData();
+      await loadUploaderData();
     } catch (error) {
       setMessage(coursesMessage, error.message, true);
     }

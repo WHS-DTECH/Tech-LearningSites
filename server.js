@@ -2,12 +2,17 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const { formidable } = require("formidable");
 const {
   getPool,
   initAdminSchema,
   getDashboard,
   getCourseStatus,
-  updateCourseRequirement
+  updateCourseRequirement,
+  getCourseContent,
+  upsertCourseContent,
+  saveCourseStatementPdf,
+  getCourseStatementPdf
 } = require("./backend/adminStore");
 
 const port = process.env.PORT || 3000;
@@ -68,6 +73,14 @@ function sendJson(response, statusCode, payload, extraHeaders = {}) {
     ...extraHeaders
   });
   response.end(JSON.stringify(payload));
+}
+
+function sendBinary(response, statusCode, fileBuffer, mimeType, extraHeaders = {}) {
+  response.writeHead(statusCode, {
+    "Content-Type": mimeType || "application/octet-stream",
+    ...extraHeaders
+  });
+  response.end(fileBuffer);
 }
 
 function parseCookies(request) {
@@ -184,6 +197,25 @@ async function readJsonBody(request) {
   });
 }
 
+async function readMultipartBody(request) {
+  return new Promise((resolve, reject) => {
+    const form = formidable({
+      multiples: false,
+      maxFileSize: 10 * 1024 * 1024,
+      allowEmptyFiles: false
+    });
+
+    form.parse(request, (error, fields, files) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve({ fields, files });
+    });
+  });
+}
+
 async function handleAdminApi(request, response, requestUrl) {
   const { pathname, searchParams } = requestUrl;
 
@@ -258,6 +290,49 @@ async function handleAdminApi(request, response, requestUrl) {
     return;
   }
 
+  if (request.method === "GET" && pathname.startsWith("/api/admin/course-content/")) {
+    const courseCode = pathname.replace("/api/admin/course-content/", "").split("/")[0];
+    const content = await getCourseContent(courseCode);
+    sendJson(response, 200, { ok: true, ...content });
+    return;
+  }
+
+  if (request.method === "POST" && pathname.startsWith("/api/admin/course-content/") && pathname.endsWith("/statement")) {
+    const courseCode = pathname.replace("/api/admin/course-content/", "").replace("/statement", "");
+    const { files } = await readMultipartBody(request);
+    const file = Array.isArray(files.statementPdf) ? files.statementPdf[0] : files.statementPdf;
+
+    if (!file || !file.filepath) {
+      throw new Error("statementPdf file is required");
+    }
+
+    const fileBuffer = await fs.promises.readFile(file.filepath);
+    const result = await saveCourseStatementPdf({
+      courseCode,
+      fileName: file.originalFilename,
+      mimeType: file.mimetype,
+      fileBuffer,
+      updatedBy: "ADMIN uploader"
+    });
+
+    sendJson(response, 200, result);
+    return;
+  }
+
+  if (request.method === "POST" && pathname.startsWith("/api/admin/course-content/")) {
+    const courseCode = pathname.replace("/api/admin/course-content/", "").split("/")[0];
+    const body = await readJsonBody(request);
+    const result = await upsertCourseContent({
+      courseCode,
+      assessments: body.assessments,
+      assessmentLinks: body.assessmentLinks,
+      updatedBy: "ADMIN uploader"
+    });
+
+    sendJson(response, 200, result);
+    return;
+  }
+
   if (request.method === "GET" && pathname === "/api/admin/dashboard") {
     const year = Number.parseInt(searchParams.get("year"), 10);
     const term = searchParams.get("term") || "T1";
@@ -297,11 +372,63 @@ async function handleAdminApi(request, response, requestUrl) {
   sendJson(response, 404, { ok: false, error: "API route not found" });
 }
 
+async function handlePublicCourseContentApi(response, requestUrl) {
+  if (!getPool()) {
+    sendJson(response, 503, {
+      ok: false,
+      error: "DATABASE_URL is not configured"
+    });
+    return;
+  }
+
+  await initAdminSchema();
+
+  const pathname = requestUrl.pathname;
+
+  if (pathname.endsWith("/statement.pdf")) {
+    const courseCode = pathname.replace("/api/course-content/", "").replace("/statement.pdf", "");
+    const statement = await getCourseStatementPdf(courseCode);
+
+    if (!statement) {
+      sendJson(response, 404, { ok: false, error: "Statement PDF not found" });
+      return;
+    }
+
+    sendBinary(response, 200, statement.fileBuffer, statement.mimeType, {
+      "Content-Disposition": `inline; filename="${statement.fileName}"`
+    });
+    return;
+  }
+
+  const courseCode = pathname.replace("/api/course-content/", "").split("/")[0];
+  const content = await getCourseContent(courseCode);
+
+  sendJson(response, 200, {
+    ok: true,
+    courseCode: content.courseCode,
+    assessments: content.assessments,
+    assessmentLinks: content.assessmentLinks,
+    hasStatementPdf: content.hasStatementPdf,
+    statementUrl: content.hasStatementPdf ? `/api/course-content/${content.courseCode}/statement.pdf` : null,
+    statementFilename: content.statementFilename
+  });
+}
+
 const server = http.createServer((request, response) => {
   const requestUrl = new URL(request.url, `http://${request.headers.host || "localhost"}`);
 
   if (requestUrl.pathname.startsWith("/api/admin/")) {
     handleAdminApi(request, response, requestUrl).catch((error) => {
+      sendJson(response, 500, {
+        ok: false,
+        error: error.message || "Server error"
+      });
+    });
+    return;
+  }
+
+  if (requestUrl.pathname.startsWith("/api/course-content/")) {
+    handlePublicCourseContentApi(response, requestUrl).catch((error) => {
       sendJson(response, 500, {
         ok: false,
         error: error.message || "Server error"

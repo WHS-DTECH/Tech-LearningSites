@@ -8,6 +8,7 @@ titleLines:
 summary: 11TEXT course page with assessments, resources, and project statements.
 lead: Keep this page current with weekly workshop tasks, safety expectations, and assessment checkpoints.
 hideContent: true
+contentApiCourseCode: 11TEXT
 assessments:
   - code: Replace with assessment 1.
   - code: Replace with assessment 2.

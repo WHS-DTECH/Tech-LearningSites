@@ -25,7 +25,7 @@ layout: layouts/base.njk
   {% if assessments %}
     <div class="course-block course-assessments">
       <h2>Assessments</h2>
-      <ul>
+      <ul id="course-assessments-list">
         {% for item in assessments %}
           <li>
             {% if item.url %}
@@ -46,7 +46,7 @@ layout: layouts/base.njk
   {% endif %}
 
   {% if assessmentLinks %}
-    <nav class="course-chip-row" aria-label="Course resources">
+    <nav class="course-chip-row" aria-label="Course resources" id="course-chip-row">
       {% if assessmentGroup %}
         {% for link in assessmentLinks %}
           {% if loop.index == assessmentGroup.start %}
@@ -79,7 +79,7 @@ layout: layouts/base.njk
       <span class="course-chevron" aria-hidden="true"></span>
     </summary>
 
-    <div class="course-statement-body">
+    <div class="course-statement-body" id="course-statement-body" data-default-height="{{ statement.height or 1000 }}">
       {% if statement and statement.embedUrl %}
         <div class="course-embed-frame">
           <iframe
@@ -112,3 +112,79 @@ layout: layouts/base.njk
     </div>
   {% endif %}
 </section>
+
+{% if contentApiCourseCode %}
+  <script>
+    (async () => {
+      const courseCode = "{{ contentApiCourseCode }}";
+
+      try {
+        const response = await fetch(`/api/course-content/${courseCode}`, { credentials: "same-origin" });
+        const data = await response.json();
+
+        if (!response.ok || data.ok === false) {
+          return;
+        }
+
+        const assessmentsList = document.getElementById("course-assessments-list");
+        if (assessmentsList && Array.isArray(data.assessments) && data.assessments.length) {
+          assessmentsList.innerHTML = data.assessments
+            .map((item) => `<li><span>${String(item).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</span></li>`)
+            .join("");
+        }
+
+        const chipRow = document.getElementById("course-chip-row");
+        if (chipRow && Array.isArray(data.assessmentLinks) && data.assessmentLinks.length) {
+          const groupStart = {{ assessmentGroup.start if assessmentGroup else 0 }};
+          const groupEnd = {{ assessmentGroup.end if assessmentGroup else 0 }};
+          let html = "";
+
+          data.assessmentLinks.forEach((link, index) => {
+            const oneBased = index + 1;
+
+            if (groupStart && oneBased === groupStart) {
+              html += `<div class=\"course-chip-group\" aria-label=\"{{ assessmentGroup.ariaLabel or 'Assessment links' }}\">`;
+            }
+
+            const label = String(link.label || "")
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;");
+            const url = String(link.url || "#")
+              .replace(/\"/g, "&quot;");
+
+            const className = groupStart && oneBased >= groupStart && oneBased <= groupEnd
+              ? "course-chip course-chip-assessment"
+              : "course-chip";
+
+            html += `<a class=\"${className}\" href=\"${url}\">${label}</a>`;
+
+            if (groupEnd && oneBased === groupEnd) {
+              html += "</div>";
+            }
+          });
+
+          chipRow.innerHTML = html;
+        }
+
+        const statementBody = document.getElementById("course-statement-body");
+        if (statementBody && data.statementUrl) {
+          const frameHeight = Number.parseInt(statementBody.dataset.defaultHeight, 10) || 1000;
+          statementBody.innerHTML = `
+            <div class=\"course-embed-frame\">
+              <iframe
+                src=\"${data.statementUrl}\"
+                title=\"Assessment statement\"
+                loading=\"lazy\"
+                referrerpolicy=\"no-referrer\"
+                style=\"height: ${frameHeight}px;\"
+              ></iframe>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error("Unable to load dynamic course content", error);
+      }
+    })();
+  </script>
+{% endif %}

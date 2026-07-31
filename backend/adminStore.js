@@ -4,6 +4,7 @@ const path = require("path");
 
 const STATUS_VALUES = new Set(["pending", "complete"]);
 const TERM_VALUES = new Set(["T1", "T3"]);
+const COURSE_CONTENT_TARGETS = new Set(["11TEXT"]);
 
 const COURSE_SEED = [
   { subjectCode: "DTECH", courseCode: "JDTECH", courseName: "Junior Digital Tech" },
@@ -114,12 +115,237 @@ async function initAdminSchema() {
       status TEXT NOT NULL DEFAULT 'queued',
       message TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS admin_course_content (
+      course_code TEXT PRIMARY KEY REFERENCES admin_courses(course_code) ON DELETE CASCADE,
+      assessments JSONB NOT NULL DEFAULT '[]'::jsonb,
+      assessment_links JSONB NOT NULL DEFAULT '[]'::jsonb,
+      statement_filename TEXT,
+      statement_mime TEXT,
+      statement_pdf BYTEA,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_by TEXT
+    );
   `);
 
   await seedSubjectsAndCourses();
   await seedDefaultTermRequirements(new Date().getUTCFullYear());
   await applyEvidenceOverrides(new Date().getUTCFullYear());
   initialized = true;
+}
+
+function normalizeCourseCode(courseCode) {
+  return String(courseCode || "").trim().toUpperCase();
+}
+
+function normalizeAssessments(input) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .map((value) => String(value || "").trim())
+    .filter(Boolean)
+    .slice(0, 10);
+}
+
+function normalizeAssessmentLinks(input) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .map((link) => ({
+      label: String(link?.label || "").trim(),
+      url: String(link?.url || "").trim() || "#"
+    }))
+    .filter((link) => link.label)
+    .slice(0, 10);
+}
+
+async function ensureCourseContentRow(courseCode) {
+  await query(
+    `
+      INSERT INTO admin_course_content (course_code)
+      VALUES ($1)
+      ON CONFLICT (course_code) DO NOTHING
+    `,
+    [courseCode]
+  );
+}
+
+function defaultCourseContent(courseCode) {
+  if (courseCode === "11TEXT") {
+    return {
+      assessments: [
+        "Replace with assessment 1.",
+        "Replace with assessment 2.",
+        "Replace with assessment 3."
+      ],
+      assessmentLinks: [
+        { label: "Course overview", url: "#" },
+        { label: "Assessment statement", url: "#" },
+        { label: "Workshop tools", url: "#" },
+        { label: "Project checklist", url: "#" },
+        { label: "Practical skills", url: "#" }
+      ]
+    };
+  }
+
+  return {
+    assessments: [],
+    assessmentLinks: []
+  };
+}
+
+async function getCourseContent(courseCode) {
+  const safeCode = normalizeCourseCode(courseCode);
+  if (!safeCode) {
+    throw new Error("courseCode is required");
+  }
+
+  if (!COURSE_CONTENT_TARGETS.has(safeCode)) {
+    throw new Error("Course uploader is not configured for this course yet");
+  }
+
+  await ensureCourseContentRow(safeCode);
+
+  const result = await query(
+    `
+      SELECT
+        course_code,
+        assessments,
+        assessment_links,
+        statement_filename,
+        statement_mime,
+        statement_pdf IS NOT NULL AS has_statement_pdf,
+        updated_at,
+        updated_by
+      FROM admin_course_content
+      WHERE course_code = $1
+      LIMIT 1
+    `,
+    [safeCode]
+  );
+
+  const row = result.rows[0];
+  const defaults = defaultCourseContent(safeCode);
+
+  return {
+    courseCode: safeCode,
+    assessments: row.assessments?.length ? row.assessments : defaults.assessments,
+    assessmentLinks: row.assessment_links?.length ? row.assessment_links : defaults.assessmentLinks,
+    hasStatementPdf: Boolean(row.has_statement_pdf),
+    statementFilename: row.statement_filename || null,
+    statementMime: row.statement_mime || null,
+    updatedAt: row.updated_at || null,
+    updatedBy: row.updated_by || null
+  };
+}
+
+async function upsertCourseContent(payload) {
+  const safeCode = normalizeCourseCode(payload.courseCode);
+  if (!safeCode) {
+    throw new Error("courseCode is required");
+  }
+
+  if (!COURSE_CONTENT_TARGETS.has(safeCode)) {
+    throw new Error("Course uploader is not configured for this course yet");
+  }
+
+  const assessments = normalizeAssessments(payload.assessments);
+  const assessmentLinks = normalizeAssessmentLinks(payload.assessmentLinks);
+
+  await ensureCourseContentRow(safeCode);
+  await query(
+    `
+      UPDATE admin_course_content
+      SET assessments = $2::jsonb,
+          assessment_links = $3::jsonb,
+          updated_at = NOW(),
+          updated_by = COALESCE($4, updated_by)
+      WHERE course_code = $1
+    `,
+    [safeCode, JSON.stringify(assessments), JSON.stringify(assessmentLinks), payload.updatedBy || null]
+  );
+
+  return {
+    ok: true,
+    courseCode: safeCode,
+    assessments,
+    assessmentLinks
+  };
+}
+
+async function saveCourseStatementPdf(payload) {
+  const safeCode = normalizeCourseCode(payload.courseCode);
+  if (!safeCode) {
+    throw new Error("courseCode is required");
+  }
+
+  if (!COURSE_CONTENT_TARGETS.has(safeCode)) {
+    throw new Error("Course uploader is not configured for this course yet");
+  }
+
+  if (!payload.fileBuffer || !Buffer.isBuffer(payload.fileBuffer) || payload.fileBuffer.length === 0) {
+    throw new Error("A PDF file is required");
+  }
+
+  if (payload.fileBuffer.length > 10 * 1024 * 1024) {
+    throw new Error("PDF is too large. Maximum size is 10MB.");
+  }
+
+  const mimeType = payload.mimeType || "application/pdf";
+  if (mimeType !== "application/pdf") {
+    throw new Error("Only PDF uploads are supported");
+  }
+
+  await ensureCourseContentRow(safeCode);
+  await query(
+    `
+      UPDATE admin_course_content
+      SET statement_filename = $2,
+          statement_mime = $3,
+          statement_pdf = $4,
+          updated_at = NOW(),
+          updated_by = COALESCE($5, updated_by)
+      WHERE course_code = $1
+    `,
+    [safeCode, payload.fileName || `${safeCode}-statement.pdf`, mimeType, payload.fileBuffer, payload.updatedBy || null]
+  );
+
+  return {
+    ok: true,
+    courseCode: safeCode,
+    statementFilename: payload.fileName || `${safeCode}-statement.pdf`
+  };
+}
+
+async function getCourseStatementPdf(courseCode) {
+  const safeCode = normalizeCourseCode(courseCode);
+  if (!safeCode) {
+    throw new Error("courseCode is required");
+  }
+
+  const result = await query(
+    `
+      SELECT statement_filename, statement_mime, statement_pdf
+      FROM admin_course_content
+      WHERE course_code = $1
+      LIMIT 1
+    `,
+    [safeCode]
+  );
+
+  if (!result.rows.length || !result.rows[0].statement_pdf) {
+    return null;
+  }
+
+  return {
+    fileName: result.rows[0].statement_filename || `${safeCode}-statement.pdf`,
+    mimeType: result.rows[0].statement_mime || "application/pdf",
+    fileBuffer: result.rows[0].statement_pdf
+  };
 }
 
 function hasMwoodS2Evidence() {
@@ -393,5 +619,9 @@ module.exports = {
   initAdminSchema,
   getDashboard,
   getCourseStatus,
-  updateCourseRequirement
+  updateCourseRequirement,
+  getCourseContent,
+  upsertCourseContent,
+  saveCourseStatementPdf,
+  getCourseStatementPdf
 };

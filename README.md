@@ -39,6 +39,14 @@ The app now includes a backend API for admin update tracking.
 - `GET /api/admin/dashboard?year=2026&term=T1`
 - `GET /api/admin/courses?year=2026&term=T1&subject=DTECH&status=red`
 - `POST /api/admin/courses/status`
+- `GET /api/admin/course-content/11TEXT`
+- `POST /api/admin/course-content/11TEXT`
+- `POST /api/admin/course-content/11TEXT/statement` (multipart, file field `statementPdf`)
+
+Public course content endpoints used by the 11TEXT page:
+
+- `GET /api/course-content/11TEXT`
+- `GET /api/course-content/11TEXT/statement.pdf`
 
 Login payload:
 
