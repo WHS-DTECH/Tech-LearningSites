@@ -2,7 +2,7 @@ const { Pool } = require("pg");
 const fs = require("fs");
 const path = require("path");
 
-const STATUS_VALUES = new Set(["pending", "complete"]);
+const STATUS_VALUES = new Set(["not_started", "incomplete", "complete", "pending"]);
 const TERM_VALUES = new Set(["T1", "T3"]);
 const COURSE_CONTENT_TARGETS = new Set(["11TEXT"]);
 const LOCKED_LINK_LABELS = {
@@ -153,6 +153,51 @@ async function initAdminSchema() {
     );
   `);
 
+  await query(`
+    ALTER TABLE admin_term_requirements
+    ADD COLUMN IF NOT EXISTS assessments_status TEXT NOT NULL DEFAULT 'not_started';
+
+    ALTER TABLE admin_term_requirements
+    ADD COLUMN IF NOT EXISTS pdf_statement_status TEXT NOT NULL DEFAULT 'not_started';
+
+    ALTER TABLE admin_term_requirements
+    ADD COLUMN IF NOT EXISTS health_safety_status TEXT NOT NULL DEFAULT 'not_started';
+
+    ALTER TABLE admin_term_requirements
+    ADD COLUMN IF NOT EXISTS practical_skills_status TEXT NOT NULL DEFAULT 'not_started';
+
+    ALTER TABLE admin_term_requirements
+    ADD COLUMN IF NOT EXISTS topic_buttons_status TEXT NOT NULL DEFAULT 'not_started';
+
+    ALTER TABLE admin_term_requirements
+    ADD COLUMN IF NOT EXISTS assessments_updated_at TIMESTAMPTZ;
+
+    ALTER TABLE admin_term_requirements
+    ADD COLUMN IF NOT EXISTS pdf_statement_updated_at TIMESTAMPTZ;
+
+    ALTER TABLE admin_term_requirements
+    ADD COLUMN IF NOT EXISTS health_safety_updated_at TIMESTAMPTZ;
+
+    ALTER TABLE admin_term_requirements
+    ADD COLUMN IF NOT EXISTS practical_skills_updated_at TIMESTAMPTZ;
+
+    ALTER TABLE admin_term_requirements
+    ADD COLUMN IF NOT EXISTS topic_buttons_updated_at TIMESTAMPTZ;
+
+    UPDATE admin_term_requirements
+    SET assessments_status = CASE
+          WHEN outline_status = 'complete' THEN 'complete'
+          WHEN assessments_status = 'not_started' THEN 'incomplete'
+          ELSE assessments_status
+        END,
+        pdf_statement_status = CASE
+          WHEN statement_status = 'complete' THEN 'complete'
+          ELSE pdf_statement_status
+        END
+    WHERE assessments_status = 'not_started'
+       OR pdf_statement_status = 'not_started';
+  `);
+
   await seedSubjectsAndCourses();
   await seedDefaultTermRequirements(new Date().getUTCFullYear());
   await applyEvidenceOverrides(new Date().getUTCFullYear());
@@ -234,20 +279,74 @@ function hasPlaceholderText(value) {
   return /replace\s+with/i.test(String(value || ""));
 }
 
-function evaluateOutlineCompleteness(assessments, assessmentLinks) {
-  const hasAssessments = Array.isArray(assessments)
-    && assessments.length >= 3
-    && assessments.every((item) => String(item || "").trim() && !hasPlaceholderText(item));
+function isValidAssessment(value) {
+  const text = String(value || "").trim();
+  return Boolean(text) && !hasPlaceholderText(text);
+}
 
-  const hasLinkedButtons = Array.isArray(assessmentLinks)
-    && assessmentLinks.length >= 5
-    && assessmentLinks.every((link) => {
-      const label = String(link?.label || "").trim();
-      const url = String(link?.url || "").trim();
-      return Boolean(label) && Boolean(url) && url !== "#";
-    });
+function isValidLink(link) {
+  const label = String(link?.label || "").trim();
+  const url = String(link?.url || "").trim();
+  return Boolean(label) && Boolean(url) && url !== "#" && !hasPlaceholderText(label) && !hasPlaceholderText(url);
+}
 
-  return hasAssessments && hasLinkedButtons;
+function evaluateAssessmentsStatus(assessments) {
+  const safeAssessments = Array.isArray(assessments) ? assessments : [];
+  if (!safeAssessments.length) {
+    return "not_started";
+  }
+
+  const validCount = safeAssessments.filter(isValidAssessment).length;
+  if (safeAssessments.length >= 3 && validCount === safeAssessments.length) {
+    return "complete";
+  }
+
+  return "incomplete";
+}
+
+function evaluateHealthSafetyStatus(assessmentLinks) {
+  const firstLink = Array.isArray(assessmentLinks) && assessmentLinks.length ? assessmentLinks[0] : null;
+  if (!firstLink) {
+    return "not_started";
+  }
+
+  return isValidLink(firstLink) ? "complete" : "not_started";
+}
+
+function evaluatePracticalSkillsStatus(assessmentLinks) {
+  const lastLink = Array.isArray(assessmentLinks) && assessmentLinks.length
+    ? assessmentLinks[assessmentLinks.length - 1]
+    : null;
+
+  if (!lastLink) {
+    return "not_started";
+  }
+
+  return isValidLink(lastLink) ? "complete" : "not_started";
+}
+
+function evaluateTopicButtonsStatus(assessments, assessmentLinks) {
+  const safeAssessments = Array.isArray(assessments) ? assessments : [];
+  const topicButtons = Array.isArray(assessmentLinks)
+    ? assessmentLinks.slice(1, -1)
+    : [];
+  const hasAnyTopicContent = topicButtons.some((link) => String(link?.label || "").trim() || String(link?.url || "").trim());
+  const validTopicButtons = topicButtons.filter(isValidLink);
+
+  if (!safeAssessments.length && !hasAnyTopicContent) {
+    return "not_started";
+  }
+
+  if (!safeAssessments.length) {
+    return "incomplete";
+  }
+
+  const allAssessmentsValid = safeAssessments.every(isValidAssessment);
+  if (allAssessmentsValid && validTopicButtons.length === safeAssessments.length && validTopicButtons.length > 0) {
+    return "complete";
+  }
+
+  return "incomplete";
 }
 
 async function syncCourseRequirementFromContent(courseCode, updatedBy) {
@@ -257,10 +356,11 @@ async function syncCourseRequirementFromContent(courseCode, updatedBy) {
   }
 
   const content = await getCourseContent(safeCode);
-  const outlineStatus = evaluateOutlineCompleteness(content.assessments, content.assessmentLinks)
-    ? "complete"
-    : "pending";
-  const statementStatus = content.hasStatementPdf ? "complete" : "pending";
+  const assessmentsStatus = evaluateAssessmentsStatus(content.assessments);
+  const pdfStatementStatus = content.hasStatementPdf ? "complete" : "not_started";
+  const healthSafetyStatus = evaluateHealthSafetyStatus(content.assessmentLinks);
+  const practicalSkillsStatus = evaluatePracticalSkillsStatus(content.assessmentLinks);
+  const topicButtonsStatus = evaluateTopicButtonsStatus(content.assessments, content.assessmentLinks);
   const safeYear = new Date().getUTCFullYear();
   const actorName = normalizeActorName(updatedBy);
 
@@ -268,8 +368,33 @@ async function syncCourseRequirementFromContent(courseCode, updatedBy) {
   await query(
     `
       UPDATE admin_term_requirements r
-      SET outline_status = $2,
-          statement_status = $3,
+      SET assessments_status = $2,
+          pdf_statement_status = $3,
+          health_safety_status = $4,
+          practical_skills_status = $5,
+          topic_buttons_status = $6,
+          assessments_updated_at = CASE
+            WHEN $2 = 'complete' AND r.assessments_status <> 'complete' THEN NOW()
+            ELSE r.assessments_updated_at
+          END,
+          pdf_statement_updated_at = CASE
+            WHEN $3 = 'complete' AND r.pdf_statement_status <> 'complete' THEN NOW()
+            ELSE r.pdf_statement_updated_at
+          END,
+          health_safety_updated_at = CASE
+            WHEN $4 = 'complete' AND r.health_safety_status <> 'complete' THEN NOW()
+            ELSE r.health_safety_updated_at
+          END,
+          practical_skills_updated_at = CASE
+            WHEN $5 = 'complete' AND r.practical_skills_status <> 'complete' THEN NOW()
+            ELSE r.practical_skills_updated_at
+          END,
+          topic_buttons_updated_at = CASE
+            WHEN $6 = 'complete' AND r.topic_buttons_status <> 'complete' THEN NOW()
+            ELSE r.topic_buttons_updated_at
+          END,
+          outline_status = CASE WHEN $2 = 'complete' THEN 'complete' ELSE 'pending' END,
+          statement_status = CASE WHEN $3 = 'complete' THEN 'complete' ELSE 'pending' END,
           outline_updated_at = CASE
             WHEN $2 = 'complete' AND r.outline_status <> 'complete' THEN NOW()
             ELSE r.outline_updated_at
@@ -278,14 +403,23 @@ async function syncCourseRequirementFromContent(courseCode, updatedBy) {
             WHEN $3 = 'complete' AND r.statement_status <> 'complete' THEN NOW()
             ELSE r.statement_updated_at
           END,
-          updated_by = $4
+          updated_by = $7
       FROM admin_courses c
       WHERE r.course_id = c.id
         AND c.course_code = $1
-        AND r.school_year = $5
+        AND r.school_year = $8
         AND r.school_term IN ('T1', 'T3')
     `,
-    [safeCode, outlineStatus, statementStatus, actorName, safeYear]
+    [
+      safeCode,
+      assessmentsStatus,
+      pdfStatementStatus,
+      healthSafetyStatus,
+      practicalSkillsStatus,
+      topicButtonsStatus,
+      actorName,
+      safeYear
+    ]
   );
 }
 
@@ -543,8 +677,18 @@ async function applyEvidenceOverrides(year) {
       UPDATE admin_term_requirements r
       SET outline_status = 'complete',
           statement_status = 'complete',
+          assessments_status = 'complete',
+          pdf_statement_status = 'complete',
+          health_safety_status = 'complete',
+          practical_skills_status = 'complete',
+          topic_buttons_status = 'complete',
           outline_updated_at = COALESCE(r.outline_updated_at, NOW()),
           statement_updated_at = COALESCE(r.statement_updated_at, NOW()),
+          assessments_updated_at = COALESCE(r.assessments_updated_at, NOW()),
+          pdf_statement_updated_at = COALESCE(r.pdf_statement_updated_at, NOW()),
+          health_safety_updated_at = COALESCE(r.health_safety_updated_at, NOW()),
+          practical_skills_updated_at = COALESCE(r.practical_skills_updated_at, NOW()),
+          topic_buttons_updated_at = COALESCE(r.topic_buttons_updated_at, NOW()),
           updated_by = COALESCE(r.updated_by, 'evidence: MWOOD-S2 page'),
           notes = COALESCE(r.notes, 'Auto-marked complete from MWOOD-S2 course page evidence')
       FROM admin_courses c
@@ -611,7 +755,21 @@ function normalizeTerm(term) {
 }
 
 function normalizeStatus(status) {
-  const normalized = String(status || "").toLowerCase();
+  const raw = String(status || "").trim().toLowerCase();
+
+  if (raw === "--" || raw === "not-started" || raw === "not started") {
+    return "not_started";
+  }
+
+  if (raw === "x" || raw === "pending") {
+    return "incomplete";
+  }
+
+  if (raw === "tick" || raw === "ticked" || raw === "✓" || raw === "✔") {
+    return "complete";
+  }
+
+  const normalized = raw;
   return STATUS_VALUES.has(normalized) ? normalized : null;
 }
 
@@ -625,11 +783,17 @@ async function getDashboard({ year, term }) {
     `
       SELECT
         COUNT(*)::INT AS total_courses,
-        COUNT(*) FILTER (WHERE r.outline_status = 'complete')::INT AS outline_complete,
-        COUNT(*) FILTER (WHERE r.statement_status = 'complete')::INT AS statement_complete,
-        COUNT(*) FILTER (WHERE r.outline_status = 'complete' AND r.statement_status = 'complete')::INT AS fully_complete,
-        COUNT(*) FILTER (WHERE r.outline_status <> 'complete')::INT AS missing_outline,
-        COUNT(*) FILTER (WHERE r.statement_status <> 'complete')::INT AS missing_statement
+        COUNT(*) FILTER (WHERE r.assessments_status = 'complete')::INT AS assessments_complete,
+        COUNT(*) FILTER (WHERE r.pdf_statement_status = 'complete')::INT AS pdf_statement_complete,
+        COUNT(*) FILTER (
+          WHERE r.assessments_status = 'complete'
+            AND r.pdf_statement_status = 'complete'
+            AND r.health_safety_status = 'complete'
+            AND r.practical_skills_status = 'complete'
+            AND r.topic_buttons_status = 'complete'
+        )::INT AS fully_complete,
+        COUNT(*) FILTER (WHERE r.assessments_status <> 'complete')::INT AS missing_assessments,
+        COUNT(*) FILTER (WHERE r.pdf_statement_status <> 'complete')::INT AS missing_pdf_statement
       FROM admin_term_requirements r
       JOIN admin_courses c ON c.id = r.course_id
       WHERE r.school_year = $1
@@ -645,8 +809,20 @@ async function getDashboard({ year, term }) {
         s.code,
         s.name,
         COUNT(*)::INT AS total_courses,
-        COUNT(*) FILTER (WHERE r.outline_status = 'complete' AND r.statement_status = 'complete')::INT AS fully_complete,
-        COUNT(*) FILTER (WHERE r.outline_status <> 'complete' OR r.statement_status <> 'complete')::INT AS still_required
+        COUNT(*) FILTER (
+          WHERE r.assessments_status = 'complete'
+            AND r.pdf_statement_status = 'complete'
+            AND r.health_safety_status = 'complete'
+            AND r.practical_skills_status = 'complete'
+            AND r.topic_buttons_status = 'complete'
+        )::INT AS fully_complete,
+        COUNT(*) FILTER (
+          WHERE r.assessments_status <> 'complete'
+             OR r.pdf_statement_status <> 'complete'
+             OR r.health_safety_status <> 'complete'
+             OR r.practical_skills_status <> 'complete'
+             OR r.topic_buttons_status <> 'complete'
+        )::INT AS still_required
       FROM admin_term_requirements r
       JOIN admin_courses c ON c.id = r.course_id
       JOIN admin_subjects s ON s.code = c.subject_code
@@ -682,15 +858,29 @@ async function getCourseStatus({ year, term, subject, status }) {
         c.course_name,
         c.subject_code,
         s.name AS subject_name,
-        r.outline_status,
-        r.statement_status,
-        r.outline_updated_at,
-        r.statement_updated_at,
+        r.assessments_status,
+        r.pdf_statement_status,
+        r.health_safety_status,
+        r.practical_skills_status,
+        r.topic_buttons_status,
+        r.assessments_updated_at,
+        r.pdf_statement_updated_at,
+        r.health_safety_updated_at,
+        r.practical_skills_updated_at,
+        r.topic_buttons_updated_at,
         r.updated_by,
         r.notes,
         CASE
-          WHEN r.outline_status = 'complete' AND r.statement_status = 'complete' THEN 'green'
-          WHEN r.outline_status = 'complete' OR r.statement_status = 'complete' THEN 'amber'
+          WHEN r.assessments_status = 'complete'
+            AND r.pdf_statement_status = 'complete'
+            AND r.health_safety_status = 'complete'
+            AND r.practical_skills_status = 'complete'
+            AND r.topic_buttons_status = 'complete' THEN 'green'
+          WHEN r.assessments_status = 'complete'
+            OR r.pdf_statement_status = 'complete'
+            OR r.health_safety_status = 'complete'
+            OR r.practical_skills_status = 'complete'
+            OR r.topic_buttons_status = 'complete' THEN 'amber'
           ELSE 'red'
         END AS dashboard_status
       FROM admin_term_requirements r
@@ -723,20 +913,29 @@ async function updateCourseRequirement(payload) {
   const safeCourseCode = String(payload.courseCode || "").toUpperCase();
   const safeYear = Number.parseInt(payload.year, 10);
   const safeTerm = normalizeTerm(payload.term);
-  const outlineStatus = normalizeStatus(payload.outlineStatus);
-  const statementStatus = normalizeStatus(payload.statementStatus);
+  const assessmentsStatus = normalizeStatus(payload.assessmentsStatus);
+  const pdfStatementStatus = normalizeStatus(payload.pdfStatementStatus);
+  const healthSafetyStatus = normalizeStatus(payload.healthSafetyStatus);
+  const practicalSkillsStatus = normalizeStatus(payload.practicalSkillsStatus);
+  const topicButtonsStatus = normalizeStatus(payload.topicButtonsStatus);
 
   if (!safeCourseCode || !Number.isInteger(safeYear) || !safeTerm) {
     throw new Error("courseCode, year, and term are required");
   }
 
-  if (!outlineStatus && !statementStatus && payload.notes === undefined) {
+  if (!assessmentsStatus && !pdfStatementStatus && !healthSafetyStatus && !practicalSkillsStatus && !topicButtonsStatus && payload.notes === undefined) {
     throw new Error("No updates provided");
   }
 
   const currentResult = await query(
     `
-      SELECT r.id, r.outline_status, r.statement_status
+      SELECT
+        r.id,
+        r.assessments_status,
+        r.pdf_statement_status,
+        r.health_safety_status,
+        r.practical_skills_status,
+        r.topic_buttons_status
       FROM admin_term_requirements r
       JOIN admin_courses c ON c.id = r.course_id
       WHERE c.course_code = $1
@@ -752,14 +951,42 @@ async function updateCourseRequirement(payload) {
   }
 
   const current = currentResult.rows[0];
-  const nextOutline = outlineStatus || current.outline_status;
-  const nextStatement = statementStatus || current.statement_status;
+  const nextAssessments = assessmentsStatus || current.assessments_status;
+  const nextPdfStatement = pdfStatementStatus || current.pdf_statement_status;
+  const nextHealthSafety = healthSafetyStatus || current.health_safety_status;
+  const nextPracticalSkills = practicalSkillsStatus || current.practical_skills_status;
+  const nextTopicButtons = topicButtonsStatus || current.topic_buttons_status;
 
   await query(
     `
       UPDATE admin_term_requirements
-      SET outline_status = $2,
-          statement_status = $3,
+      SET assessments_status = $2,
+          pdf_statement_status = $3,
+          health_safety_status = $4,
+          practical_skills_status = $5,
+          topic_buttons_status = $6,
+          assessments_updated_at = CASE
+            WHEN $2 = 'complete' AND assessments_status <> 'complete' THEN NOW()
+            ELSE assessments_updated_at
+          END,
+          pdf_statement_updated_at = CASE
+            WHEN $3 = 'complete' AND pdf_statement_status <> 'complete' THEN NOW()
+            ELSE pdf_statement_updated_at
+          END,
+          health_safety_updated_at = CASE
+            WHEN $4 = 'complete' AND health_safety_status <> 'complete' THEN NOW()
+            ELSE health_safety_updated_at
+          END,
+          practical_skills_updated_at = CASE
+            WHEN $5 = 'complete' AND practical_skills_status <> 'complete' THEN NOW()
+            ELSE practical_skills_updated_at
+          END,
+          topic_buttons_updated_at = CASE
+            WHEN $6 = 'complete' AND topic_buttons_status <> 'complete' THEN NOW()
+            ELSE topic_buttons_updated_at
+          END,
+          outline_status = CASE WHEN $2 = 'complete' THEN 'complete' ELSE 'pending' END,
+          statement_status = CASE WHEN $3 = 'complete' THEN 'complete' ELSE 'pending' END,
           outline_updated_at = CASE
             WHEN $2 = 'complete' AND outline_status <> 'complete' THEN NOW()
             ELSE outline_updated_at
@@ -768,11 +995,20 @@ async function updateCourseRequirement(payload) {
             WHEN $3 = 'complete' AND statement_status <> 'complete' THEN NOW()
             ELSE statement_updated_at
           END,
-          updated_by = COALESCE($4, updated_by),
-          notes = COALESCE($5, notes)
+          updated_by = COALESCE($7, updated_by),
+          notes = COALESCE($8, notes)
       WHERE id = $1
     `,
-    [current.id, nextOutline, nextStatement, payload.updatedBy || null, payload.notes || null]
+    [
+      current.id,
+      nextAssessments,
+      nextPdfStatement,
+      nextHealthSafety,
+      nextPracticalSkills,
+      nextTopicButtons,
+      payload.updatedBy || null,
+      payload.notes || null
+    ]
   );
 
   return {
@@ -780,8 +1016,11 @@ async function updateCourseRequirement(payload) {
     courseCode: safeCourseCode,
     year: safeYear,
     term: safeTerm,
-    outlineStatus: nextOutline,
-    statementStatus: nextStatement
+    assessmentsStatus: nextAssessments,
+    pdfStatementStatus: nextPdfStatement,
+    healthSafetyStatus: nextHealthSafety,
+    practicalSkillsStatus: nextPracticalSkills,
+    topicButtonsStatus: nextTopicButtons
   };
 }
 

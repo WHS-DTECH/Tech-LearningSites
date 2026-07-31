@@ -1177,9 +1177,13 @@ img {
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 980px;
+  min-width: 1380px;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 14px;
+}
+
+#admin-panel-course .admin-table select[data-field$='Status'] {
+  min-width: 78px;
 }
 
 .admin-table th,

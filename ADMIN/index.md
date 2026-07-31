@@ -19,7 +19,7 @@ templateEngineOverride: njk
   <div class="admin-dashboard-head">
     <div>
       <h2 class="section-title">HOD Update Dashboard</h2>
-      <p>Track Term 1 and Term 3 course outline and assessment statement completion.</p>
+      <p>Track Term 1 and Term 3 completion for assessments, PDF statement, safety/practical updates, and topic buttons.</p>
     </div>
     <button id="admin-logout" class="button-secondary" type="button">Sign out</button>
   </div>
@@ -84,8 +84,11 @@ templateEngineOverride: njk
           <tr>
             <th>Course</th>
             <th>Subject</th>
-            <th>Outline</th>
-            <th>Statement</th>
+            <th>Assessments</th>
+            <th>PDF Statement</th>
+            <th>Health &amp; Safety</th>
+            <th>Practical Skills</th>
+            <th>Topic Buttons</th>
             <th>Dashboard</th>
             <th>Updated by</th>
             <th>Notes</th>
@@ -206,6 +209,11 @@ templateEngineOverride: njk
     0: "Health & Safety",
     6: "Practical Skills"
   };
+  const STATUS_OPTIONS = [
+    { value: "not_started", label: "--" },
+    { value: "incomplete", label: "x" },
+    { value: "complete", label: "tick" }
+  ];
 
   const yearInput = document.getElementById("filter-year");
   const termInput = document.getElementById("filter-term");
@@ -687,10 +695,10 @@ templateEngineOverride: njk
     const cards = [
       { label: "Total courses", value: summary.total_courses },
       { label: "Fully complete", value: summary.fully_complete },
-      { label: "Outline complete", value: summary.outline_complete },
-      { label: "Statement complete", value: summary.statement_complete },
-      { label: "Missing outline", value: summary.missing_outline },
-      { label: "Missing statement", value: summary.missing_statement }
+      { label: "Assessments complete", value: summary.assessments_complete },
+      { label: "PDF Statement complete", value: summary.pdf_statement_complete },
+      { label: "Missing assessments", value: summary.missing_assessments },
+      { label: "Missing PDF Statement", value: summary.missing_pdf_statement }
     ];
 
     summaryEl.innerHTML = cards
@@ -721,6 +729,25 @@ templateEngineOverride: njk
     return `<span class="admin-status-badge ${className}">${escapeHtml(status)}</span>`;
   }
 
+  function normalizeStatusValue(value) {
+    const safe = String(value || "").toLowerCase();
+    if (safe === "pending") {
+      return "incomplete";
+    }
+    if (safe === "not_started" || safe === "incomplete" || safe === "complete") {
+      return safe;
+    }
+    return "not_started";
+  }
+
+  function renderStatusSelect(fieldName, currentValue) {
+    const selected = normalizeStatusValue(currentValue);
+    const options = STATUS_OPTIONS
+      .map((option) => `<option value="${option.value}" ${selected === option.value ? "selected" : ""}>${option.label}</option>`)
+      .join("");
+    return `<select class="admin-inline-select" data-field="${fieldName}">${options}</select>`;
+  }
+
   function renderCourses(courses) {
     if (!courses.length) {
       coursesTableBody.innerHTML = "";
@@ -736,18 +763,11 @@ templateEngineOverride: njk
           <tr data-row-id="${escapeHtml(rowId)}" data-course-code="${escapeHtml(course.course_code)}">
             <td><strong>${escapeHtml(course.course_code)}</strong><br>${escapeHtml(course.course_name)}</td>
             <td>${escapeHtml(course.subject_code)}</td>
-            <td>
-              <select class="admin-inline-select" data-field="outlineStatus">
-                <option value="pending" ${course.outline_status === "pending" ? "selected" : ""}>pending</option>
-                <option value="complete" ${course.outline_status === "complete" ? "selected" : ""}>complete</option>
-              </select>
-            </td>
-            <td>
-              <select class="admin-inline-select" data-field="statementStatus">
-                <option value="pending" ${course.statement_status === "pending" ? "selected" : ""}>pending</option>
-                <option value="complete" ${course.statement_status === "complete" ? "selected" : ""}>complete</option>
-              </select>
-            </td>
+            <td>${renderStatusSelect("assessmentsStatus", course.assessments_status)}</td>
+            <td>${renderStatusSelect("pdfStatementStatus", course.pdf_statement_status)}</td>
+            <td>${renderStatusSelect("healthSafetyStatus", course.health_safety_status)}</td>
+            <td>${renderStatusSelect("practicalSkillsStatus", course.practical_skills_status)}</td>
+            <td>${renderStatusSelect("topicButtonsStatus", course.topic_buttons_status)}</td>
             <td>${statusBadge(course.dashboard_status)}</td>
             <td>${escapeHtml(course.updated_by || "-")}</td>
             <td><input class="admin-inline-input" data-field="notes" value="${escapeHtml(course.notes || "")}" placeholder="Optional note"></td>
@@ -845,8 +865,11 @@ templateEngineOverride: njk
     }
 
     const row = button.closest("tr");
-    const outlineStatus = row.querySelector("select[data-field='outlineStatus']").value;
-    const statementStatus = row.querySelector("select[data-field='statementStatus']").value;
+    const assessmentsStatus = row.querySelector("select[data-field='assessmentsStatus']").value;
+    const pdfStatementStatus = row.querySelector("select[data-field='pdfStatementStatus']").value;
+    const healthSafetyStatus = row.querySelector("select[data-field='healthSafetyStatus']").value;
+    const practicalSkillsStatus = row.querySelector("select[data-field='practicalSkillsStatus']").value;
+    const topicButtonsStatus = row.querySelector("select[data-field='topicButtonsStatus']").value;
     const notes = row.querySelector("input[data-field='notes']").value;
 
     button.disabled = true;
@@ -859,8 +882,11 @@ templateEngineOverride: njk
           courseCode: row.dataset.courseCode,
           year: Number.parseInt(yearInput.value, 10),
           term: termInput.value,
-          outlineStatus,
-          statementStatus,
+          assessmentsStatus,
+          pdfStatementStatus,
+          healthSafetyStatus,
+          practicalSkillsStatus,
+          topicButtonsStatus,
           notes,
           updatedBy: "HOD"
         })
