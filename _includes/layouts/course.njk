@@ -169,11 +169,17 @@ layout: layouts/base.njk
 
         const statementBody = document.getElementById("course-statement-body");
         if (statementBody && data.statementUrl) {
-          const frameHeight = Number.parseInt(statementBody.dataset.defaultHeight, 10) || 1000;
+          const frameWidth = statementBody.clientWidth || 1100;
+          const landscapeA4Height = Math.round(frameWidth / 1.414); // A4 landscape ratio
+          const frameHeight = Math.max(420, Math.min(landscapeA4Height, 900));
+          const fitParams = "page=1&zoom=page-fit&view=FitH&pagemode=none";
+          const statementSrc = data.statementUrl.includes("#")
+            ? `${data.statementUrl}&${fitParams}`
+            : `${data.statementUrl}#${fitParams}`;
           statementBody.innerHTML = `
             <div class=\"course-embed-frame\">
               <iframe
-                src=\"${data.statementUrl}\"
+                src=\"${statementSrc}\"
                 title=\"Assessment statement\"
                 loading=\"lazy\"
                 referrerpolicy=\"no-referrer\"
