@@ -105,12 +105,20 @@ permalink: /ADMIN/
         <h4>Area 1: Assessments List</h4>
         <p>Enter one assessment per line.</p>
         <textarea id="uploader-assessments" class="admin-uploader-textarea" rows="6" placeholder="Standard number and short assessment name"></textarea>
+        <div class="admin-uploader-card-actions">
+          <button id="uploader-save-assessments" type="button" class="button-secondary">Save Area 1</button>
+          <p id="uploader-assessments-status" class="admin-message"></p>
+        </div>
       </article>
 
       <article class="admin-uploader-card">
         <h4>Area 2: Red Bordered Buttons</h4>
         <p>Set the short label and destination URL for each button.</p>
         <div id="uploader-links"></div>
+        <div class="admin-uploader-card-actions">
+          <button id="uploader-save-links" type="button" class="button-secondary">Save Area 2</button>
+          <p id="uploader-links-status" class="admin-message"></p>
+        </div>
       </article>
 
       <article class="admin-uploader-card">
@@ -127,7 +135,7 @@ permalink: /ADMIN/
     <div class="admin-uploader-actions">
       <label class="admin-field-label" for="uploader-actor-name">Uploaded by</label>
       <input id="uploader-actor-name" class="admin-inline-input" type="text" maxlength="80" placeholder="Staff name">
-      <button id="uploader-save-content" type="button" class="button">Save 11TEXT Content</button>
+      <button id="uploader-save-content" type="button" class="button">Save All Areas</button>
       <p id="uploader-content-status" class="admin-message"></p>
     </div>
 
@@ -155,6 +163,10 @@ permalink: /ADMIN/
   const panelUploader = document.getElementById("admin-panel-uploader");
   const uploaderAssessments = document.getElementById("uploader-assessments");
   const uploaderLinksWrap = document.getElementById("uploader-links");
+  const uploaderSaveAssessments = document.getElementById("uploader-save-assessments");
+  const uploaderAssessmentsStatus = document.getElementById("uploader-assessments-status");
+  const uploaderSaveLinks = document.getElementById("uploader-save-links");
+  const uploaderLinksStatus = document.getElementById("uploader-links-status");
   const uploaderSaveContent = document.getElementById("uploader-save-content");
   const uploaderContentStatus = document.getElementById("uploader-content-status");
   const uploaderPdfForm = document.getElementById("uploader-pdf-form");
@@ -312,6 +324,48 @@ permalink: /ADMIN/
     }
 
     return output;
+  }
+
+  function collectAssessments() {
+    return uploaderAssessments.value
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+  }
+
+  async function saveUploaderContentSelection({ includeAssessments, includeLinks }) {
+    const current = await apiRequest(`/api/admin/course-content/${UPLOADER_COURSE_CODE}`);
+    const assessments = includeAssessments ? collectAssessments() : (current.assessments || []);
+    const assessmentLinks = includeLinks ? collectUploaderLinks() : (current.assessmentLinks || []);
+
+    await apiRequest(`/api/admin/course-content/${UPLOADER_COURSE_CODE}`, {
+      method: "POST",
+      body: JSON.stringify({
+        assessments,
+        assessmentLinks,
+        updatedBy: getUploaderActorName()
+      })
+    });
+  }
+
+  async function uploadUploaderPdfIfSelected() {
+    const file = uploaderPdfInput.files?.[0];
+    if (!file) {
+      return { uploaded: false };
+    }
+
+    const formData = new FormData();
+    formData.append("statementPdf", file);
+    formData.append("updatedBy", getUploaderActorName());
+
+    await apiRequest(`/api/admin/course-content/${UPLOADER_COURSE_CODE}/statement`, {
+      method: "POST",
+      body: formData
+    });
+
+    uploaderPdfInput.value = "";
+    setMessage(uploaderPdfStatus, `Uploaded ${file.name}`);
+    return { uploaded: true, fileName: file.name };
   }
 
   async function loadUploaderData() {
@@ -541,33 +595,67 @@ permalink: /ADMIN/
     }
   });
 
+  uploaderSaveAssessments.addEventListener("click", async () => {
+    uploaderSaveAssessments.disabled = true;
+    uploaderSaveAssessments.textContent = "Saving...";
+    setMessage(uploaderAssessmentsStatus, "");
+
+    try {
+      await saveUploaderContentSelection({ includeAssessments: true, includeLinks: false });
+      await loadUploaderData();
+      setMessage(uploaderAssessmentsStatus, "Area 1 saved.");
+      uploaderSaveAssessments.textContent = "Saved";
+      setTimeout(() => {
+        uploaderSaveAssessments.textContent = "Save Area 1";
+      }, 1200);
+    } catch (error) {
+      setMessage(uploaderAssessmentsStatus, error.message, true);
+      uploaderSaveAssessments.textContent = "Save Area 1";
+    } finally {
+      uploaderSaveAssessments.disabled = false;
+    }
+  });
+
+  uploaderSaveLinks.addEventListener("click", async () => {
+    uploaderSaveLinks.disabled = true;
+    uploaderSaveLinks.textContent = "Saving...";
+    setMessage(uploaderLinksStatus, "");
+
+    try {
+      await saveUploaderContentSelection({ includeAssessments: false, includeLinks: true });
+      await loadUploaderData();
+      setMessage(uploaderLinksStatus, "Area 2 saved.");
+      uploaderSaveLinks.textContent = "Saved";
+      setTimeout(() => {
+        uploaderSaveLinks.textContent = "Save Area 2";
+      }, 1200);
+    } catch (error) {
+      setMessage(uploaderLinksStatus, error.message, true);
+      uploaderSaveLinks.textContent = "Save Area 2";
+    } finally {
+      uploaderSaveLinks.disabled = false;
+    }
+  });
+
   uploaderSaveContent.addEventListener("click", async () => {
     uploaderSaveContent.disabled = true;
-    uploaderSaveContent.textContent = "Saving...";
+    uploaderSaveContent.textContent = "Saving all...";
     setMessage(uploaderContentStatus, "");
 
     try {
-      const assessments = uploaderAssessments.value
-        .split("\n")
-        .map((line) => line.trim())
-        .filter(Boolean);
-
-      const assessmentLinks = collectUploaderLinks();
-
-      await apiRequest(`/api/admin/course-content/${UPLOADER_COURSE_CODE}`, {
-        method: "POST",
-        body: JSON.stringify({ assessments, assessmentLinks, updatedBy: getUploaderActorName() })
-      });
-
-      setMessage(uploaderContentStatus, "11TEXT content saved.");
+      await saveUploaderContentSelection({ includeAssessments: true, includeLinks: true });
+      const uploadResult = await uploadUploaderPdfIfSelected();
       await loadUploaderData();
+
+      const pdfMessage = uploadResult.uploaded ? " PDF uploaded too." : "";
+      setMessage(uploaderContentStatus, `All areas saved.${pdfMessage}`);
       uploaderSaveContent.textContent = "Saved";
       setTimeout(() => {
-        uploaderSaveContent.textContent = "Save 11TEXT Content";
+        uploaderSaveContent.textContent = "Save All Areas";
       }, 1200);
     } catch (error) {
       setMessage(uploaderContentStatus, error.message, true);
-      uploaderSaveContent.textContent = "Save 11TEXT Content";
+      uploaderSaveContent.textContent = "Save All Areas";
     } finally {
       uploaderSaveContent.disabled = false;
     }
@@ -583,23 +671,13 @@ permalink: /ADMIN/
       return;
     }
 
-    const formData = new FormData();
-    formData.append("statementPdf", file);
-    formData.append("updatedBy", getUploaderActorName());
-
     const submitButton = uploaderPdfForm.querySelector("button[type='submit']");
     submitButton.disabled = true;
     submitButton.textContent = "Uploading...";
 
     try {
-      await apiRequest(`/api/admin/course-content/${UPLOADER_COURSE_CODE}/statement`, {
-        method: "POST",
-        body: formData
-      });
-
-      setMessage(uploaderPdfStatus, `Uploaded ${file.name}`);
+      await uploadUploaderPdfIfSelected();
       await loadUploaderData();
-      uploaderPdfInput.value = "";
       submitButton.textContent = "Uploaded";
       setTimeout(() => {
         submitButton.textContent = "Upload PDF";

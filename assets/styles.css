@@ -1173,6 +1173,14 @@ img {
   color: var(--muted);
 }
 
+.admin-uploader-card-actions {
+  margin-top: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
 .admin-uploader-textarea {
   width: 100%;
   border-radius: 10px;
