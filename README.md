@@ -42,6 +42,8 @@ The app now includes a backend API for admin update tracking.
 - `GET /api/admin/course-content/11TEXT`
 - `POST /api/admin/course-content/11TEXT`
 - `POST /api/admin/course-content/11TEXT/statement` (multipart, file field `statementPdf`)
+- `GET /api/admin/google-drive-pdfs`
+- `POST /api/admin/course-content/11TEXT/statement/google-drive`
 
 Public course content endpoints used by the 11TEXT page:
 
@@ -80,6 +82,7 @@ Copy `.env.example` to `.env` for local use, and set these in Render for product
 - `DATABASE_SSL`: optional (`false` for local non-SSL databases)
 - `ADMIN_API_KEY`: temporary admin API protection key until Google OAuth is enabled
 - `ADMIN_SESSION_SECRET`: signs admin session cookies (should be different from `ADMIN_API_KEY`)
+- `GOOGLE_DRIVE_SYNC_FOLDER_URL`: optional public Google Drive folder URL used by uploader PDF sync/import
 
 When `ADMIN_API_KEY` is set, include it in requests with header `x-admin-key`.
 
@@ -98,3 +101,18 @@ Also set the backend env vars in Render service settings:
 - optional `DATABASE_SSL`
 
 If you want browser-based editing later, the next sensible step is to add a Git-backed CMS after the content structure is settled.
+
+## Google Drive PDF sync
+
+The ADMIN uploader now supports one-way PDF import from a public Google Drive folder.
+
+- `Sync from Drive`: imports the currently selected Drive PDF into the selected course statement slot.
+- `Sync matching PDF`: automatically imports the best-matched Drive PDF for the selected course when there is a clear filename match.
+
+Matching uses course codes first, then normalized course names and subject aliases. This is designed for filenames such as:
+
+- `11DTECH.pdf`
+- `11TEXT - Assessment Statement.pdf`
+- `MWOOD-S2.pdf`
+
+This is not a two-way Google Drive upload integration. Uploading back into Google Drive would require Google Drive API credentials and OAuth/service-account setup.
