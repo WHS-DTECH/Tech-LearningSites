@@ -4,7 +4,16 @@ title: Textiles
 shortTitle: Technology Learning Area
 displayTitle: Textiles
 summary: Course pages for junior making, middle school textiles, and senior garment or design pathways.
-lead: Use this homepage for current updates, pattern notices, and the practical information students need each week.
+activitySection:
+  title: "Activities Running This Week: 3 - 9 May"
+  description: Click an activity to open the Textiles hub in a new tab. Detailed tasks stay in the hub so updates happen in one place.
+  linkText: Open in Sewing Hub
+  cards:
+    - title: Material Sampler
+      summary: Build a labelled fabric sampler that demonstrates a range of stitches, seams, hems, fastenings, and decorative techniques.
+      meta: Year 11 | Machine Sewing | Assessment | 6 hrs | Intermediate
+      image: "https://res.cloudinary.com/dq1ndhl3t/image/upload/v1779076926/sewing-room-activities/activity-1779076925671-db1e1387-723b-4542-b9eb-7f6796acdb6a.jpg"
+      url: "https://tech-sewing.onrender.com/activity_detail.html?id=41"
 schoolGroups:
   - title: Junior School
     subtitle: Foundation making and textile skills
@@ -30,28 +39,5 @@ schoolGroups:
         url: "/Textiles/12TEXT/"
       - label: 13TEXT - Year 13 Textiles
         url: "/Textiles/13TEXT/"
-quickLinks:
-  - label: Pattern resources
-    url: "#"
-    description: Replace with the folder or guide students use for pattern access.
-  - label: Technique videos
-    url: "#"
-    description: Link to demonstrations for stitching, finishing, or machine setup.
-  - label: Project checklist
-    url: "#"
-    description: Add the checklist students use to track required evidence.
 permalink: /Textiles/
 ---
-## Current project
-
-Describe the current making project, what stage students are at, and what quality looks like for the next checkpoint.
-
-## Materials and preparation
-
-- Add fabric or equipment notes.
-- Include expectations for storage, labeling, or class routines.
-- List anything students should finish before the next workshop session.
-
-## Assessment and feedback
-
-Keep milestone dates and teacher feedback notes easy to find here.
