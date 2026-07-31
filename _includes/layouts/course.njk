@@ -87,6 +87,7 @@ layout: layouts/base.njk
             title="{{ statement.title or 'Assessment statement' }}"
             loading="lazy"
             referrerpolicy="no-referrer"
+            style="height: {{ statement.height or 1000 }}px;"
           ></iframe>
         </div>
       {% elif statement and statement.downloadUrl %}

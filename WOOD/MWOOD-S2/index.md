@@ -36,5 +36,6 @@ statement:
   title: Assessment statement
   open: true
   embedUrl: "/WOOD/MWOOD-S2/Course%20Outline%20%26%20Assessment%20Statements/MWOOD-S2.pdf"
+  height: 1800
 permalink: /WOOD/MWOOD-S2/
 ---
