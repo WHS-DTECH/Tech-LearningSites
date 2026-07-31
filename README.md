@@ -28,11 +28,50 @@ npm install
 npm run dev
 ```
 
+## Admin backend (Phase 1)
+
+The app now includes a backend API for admin update tracking.
+
+- `GET /api/admin/health`
+- `GET /api/admin/dashboard?year=2026&term=T1`
+- `GET /api/admin/courses?year=2026&term=T1&subject=DTECH&status=red`
+- `POST /api/admin/courses/status`
+
+Example payload for status updates:
+
+```json
+{
+  "courseCode": "11DTECH",
+  "year": 2026,
+  "term": "T1",
+  "outlineStatus": "complete",
+  "statementStatus": "pending",
+  "updatedBy": "HOD",
+  "notes": "Awaiting final statement upload"
+}
+```
+
+### Environment variables
+
+Copy `.env.example` to `.env` for local use, and set these in Render for production:
+
+- `DATABASE_URL`: Postgres connection string
+- `DATABASE_SSL`: optional (`false` for local non-SSL databases)
+- `ADMIN_API_KEY`: temporary admin API protection key until Google OAuth is enabled
+
+When `ADMIN_API_KEY` is set, include it in requests with header `x-admin-key`.
+
 ## Render setup
 
 Use the repository root as the Render project.
 
 - Build command: `npm install && npm run build`
 - Publish directory: `dist`
+
+Also set the backend env vars in Render service settings:
+
+- `DATABASE_URL`
+- `ADMIN_API_KEY`
+- optional `DATABASE_SSL`
 
 If you want browser-based editing later, the next sensible step is to add a Git-backed CMS after the content structure is settled.
