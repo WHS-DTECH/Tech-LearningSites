@@ -8,7 +8,7 @@ embeddedSection:
   title: Activities Running This Week
   description: Live activity feed embedded from the TECH-HUB Workshop website.
   url: "https://tech-wworkshop.onrender.com/"
-  height: 980
+  height: 1180
 schoolGroups:
   - title: Junior School
     subtitle: Introductory workshop learning
