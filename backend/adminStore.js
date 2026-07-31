@@ -1,4 +1,6 @@
 const { Pool } = require("pg");
+const fs = require("fs");
+const path = require("path");
 
 const STATUS_VALUES = new Set(["pending", "complete"]);
 const TERM_VALUES = new Set(["T1", "T3"]);
@@ -116,7 +118,46 @@ async function initAdminSchema() {
 
   await seedSubjectsAndCourses();
   await seedDefaultTermRequirements(new Date().getUTCFullYear());
+  await applyEvidenceOverrides(new Date().getUTCFullYear());
   initialized = true;
+}
+
+function hasMwoodS2Evidence() {
+  const mwoodPath = path.join(__dirname, "..", "WOOD", "MWOOD-S2", "index.md");
+
+  if (!fs.existsSync(mwoodPath)) {
+    return false;
+  }
+
+  const content = fs.readFileSync(mwoodPath, "utf8");
+  const hasAssessments = content.includes("assessments:");
+  const hasStatement = content.includes("statement:");
+  return hasAssessments && hasStatement;
+}
+
+async function applyEvidenceOverrides(year) {
+  // MWOOD-S2 is currently maintained as fully updated and can be used as evidence.
+  if (!hasMwoodS2Evidence()) {
+    return;
+  }
+
+  await query(
+    `
+      UPDATE admin_term_requirements r
+      SET outline_status = 'complete',
+          statement_status = 'complete',
+          outline_updated_at = COALESCE(r.outline_updated_at, NOW()),
+          statement_updated_at = COALESCE(r.statement_updated_at, NOW()),
+          updated_by = COALESCE(r.updated_by, 'evidence: MWOOD-S2 page'),
+          notes = COALESCE(r.notes, 'Auto-marked complete from MWOOD-S2 course page evidence')
+      FROM admin_courses c
+      WHERE r.course_id = c.id
+        AND c.course_code = 'MWOOD-S2'
+        AND r.school_year = $1
+        AND r.school_term IN ('T1', 'T3')
+    `,
+    [year]
+  );
 }
 
 async function seedSubjectsAndCourses() {
