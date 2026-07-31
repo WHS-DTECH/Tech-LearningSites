@@ -816,6 +816,12 @@ img {
   margin-top: 1rem;
 }
 
+.course-post-embed-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 0.75rem;
+}
+
 .course-post-embed-head {
   display: flex;
   align-items: center;
@@ -857,6 +863,10 @@ img {
   background: #f5f9ff;
 }
 
+.course-post-embed .course-post-embed-frame {
+  min-height: 1200px;
+}
+
 @media (max-width: 900px) {
   .course-chip-group {
     flex: 1 1 100%;
@@ -866,6 +876,10 @@ img {
   .course-post-embed-head {
     align-items: start;
     flex-direction: column;
+  }
+
+  .course-post-embed-actions {
+    justify-content: flex-start;
   }
 }
 
