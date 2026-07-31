@@ -186,9 +186,11 @@ templateEngineOverride: njk
   const DEFAULT_UPLOADER_COURSE_CODE = "11TEXT";
   const UPLOADER_LINK_ROWS = 5;
   const UPLOADER_ACTOR_STORAGE_KEY = "whsUploaderActorName";
-  const LOCKED_BUTTON_LABELS = {
-    0: "Health & Safety",
-    4: "Practical Skills"
+  const LOCKED_BUTTON_LABELS_BY_COURSE = {
+    "11TEXT": {
+      0: "Health & Safety",
+      4: "Practical Skills"
+    }
   };
 
   const yearInput = document.getElementById("filter-year");
@@ -231,6 +233,10 @@ templateEngineOverride: njk
 
   function getSelectedUploaderCourseCode() {
     return selectedUploaderCourseCode || DEFAULT_UPLOADER_COURSE_CODE;
+  }
+
+  function getLockedButtonLabelsForSelectedCourse() {
+    return LOCKED_BUTTON_LABELS_BY_COURSE[getSelectedUploaderCourseCode()] || {};
   }
 
   function syncUploaderCourseLabel() {
@@ -314,11 +320,12 @@ templateEngineOverride: njk
 
   function renderUploaderLinks(links) {
     const safeLinks = Array.isArray(links) ? links : [];
+    const lockedLabels = getLockedButtonLabelsForSelectedCourse();
     const rows = [];
 
     for (let i = 0; i < UPLOADER_LINK_ROWS; i += 1) {
       const link = safeLinks[i] || { label: "", url: "#" };
-      const lockedLabel = LOCKED_BUTTON_LABELS[i];
+      const lockedLabel = lockedLabels[i];
       const labelValue = lockedLabel || link.label || "";
       rows.push(`
         <div class="admin-uploader-link-row">
@@ -348,12 +355,13 @@ templateEngineOverride: njk
 
   function collectUploaderLinks() {
     const output = [];
+    const lockedLabels = getLockedButtonLabelsForSelectedCourse();
 
     for (let i = 0; i < UPLOADER_LINK_ROWS; i += 1) {
       const labelInput = uploaderLinksWrap.querySelector(`[data-link-field='label'][data-link-index='${i}']`);
       const urlInput = uploaderLinksWrap.querySelector(`[data-link-field='url'][data-link-index='${i}']`);
 
-      const label = (LOCKED_BUTTON_LABELS[i] || labelInput?.value || "").trim();
+      const label = (lockedLabels[i] || labelInput?.value || "").trim();
       const url = (urlInput?.value || "#").trim() || "#";
 
       if (label) {

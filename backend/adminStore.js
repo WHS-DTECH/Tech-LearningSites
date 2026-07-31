@@ -45,6 +45,11 @@ const COURSE_SEED = [
   { subjectCode: "WOOD", courseCode: "13FURN", courseName: "Year 13 Furniture" }
 ];
 
+// Allow course-content uploads for all seeded courses via the selector.
+for (const course of COURSE_SEED) {
+  COURSE_CONTENT_TARGETS.add(course.courseCode);
+}
+
 let pool = null;
 let initialized = false;
 
