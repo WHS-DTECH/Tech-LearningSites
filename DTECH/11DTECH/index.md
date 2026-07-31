@@ -8,6 +8,7 @@ titleLines:
 summary: 11DTECH course page with assessments, resources, and project statements.
 lead: Keep this page current with weekly workshop tasks, safety expectations, and assessment checkpoints.
 hideContent: true
+contentApiCourseCode: 11DTECH
 assessments:
   - code: Replace with assessment 1.
   - code: Replace with assessment 2.
@@ -25,7 +26,7 @@ assessmentLinks:
     url: "#"
 assessmentGroup:
   start: 2
-  end: 4
+  end: 6
   ariaLabel: Assessment-related links
 statement:
   title: Assessment statement
