@@ -1115,6 +1115,7 @@ img {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem;
   margin-top: 0.6rem;
+  align-items: start;
 }
 
 .admin-uploader-card {
@@ -1166,9 +1167,6 @@ img {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .admin-uploader-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 700px) {
@@ -1178,6 +1176,10 @@ img {
 
   .admin-summary-grid,
   .admin-subject-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-uploader-grid {
     grid-template-columns: 1fr;
   }
 }
