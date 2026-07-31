@@ -1112,10 +1112,22 @@ img {
 
 .admin-uploader-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 0.9rem;
   margin-top: 0.6rem;
   align-items: start;
+}
+
+.admin-uploader-grid > .admin-uploader-card:nth-child(1) {
+  grid-column: 1;
+}
+
+.admin-uploader-grid > .admin-uploader-card:nth-child(2) {
+  grid-column: 2;
+}
+
+.admin-uploader-grid > .admin-uploader-card:nth-child(3) {
+  grid-column: 3;
 }
 
 .admin-uploader-card {
@@ -1181,5 +1193,11 @@ img {
 
   .admin-uploader-grid {
     grid-template-columns: 1fr;
+  }
+
+  .admin-uploader-grid > .admin-uploader-card:nth-child(1),
+  .admin-uploader-grid > .admin-uploader-card:nth-child(2),
+  .admin-uploader-grid > .admin-uploader-card:nth-child(3) {
+    grid-column: auto;
   }
 }
