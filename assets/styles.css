@@ -951,6 +951,12 @@ img {
 .admin-login,
 .admin-dashboard {
   width: min(calc(100% - 1rem), 1520px);
+  max-width: 1520px;
+}
+
+.page-shell.admin-login,
+.page-shell.admin-dashboard {
+  width: min(calc(100% - 1rem), 1520px);
 }
 
 .admin-inline-form {
@@ -1144,7 +1150,7 @@ img {
 
 .admin-uploader-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 0.9rem;
   margin-top: 0.6rem;
   align-items: start;
@@ -1152,14 +1158,17 @@ img {
 
 .admin-uploader-grid > .admin-uploader-card:nth-child(1) {
   grid-column: 1;
+  min-width: 0;
 }
 
 .admin-uploader-grid > .admin-uploader-card:nth-child(2) {
   grid-column: 2;
+  min-width: 0;
 }
 
 .admin-uploader-grid > .admin-uploader-card:nth-child(3) {
   grid-column: 3;
+  min-width: 0;
 }
 
 .admin-uploader-card {
