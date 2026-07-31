@@ -563,6 +563,14 @@ templateEngineOverride: njk
     renderCourses(courses.courses);
   }
 
+  async function refreshCourseStatusAfterUploaderUpdate() {
+    try {
+      await loadDashboardData();
+    } catch (error) {
+      setMessage(coursesMessage, error.message, true);
+    }
+  }
+
   loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     setMessage(loginMessage, "");
@@ -660,6 +668,7 @@ templateEngineOverride: njk
     try {
       await saveUploaderContentSelection({ includeAssessments: true, includeLinks: false });
       await loadUploaderData();
+      await refreshCourseStatusAfterUploaderUpdate();
       setMessage(uploaderAssessmentsStatus, "Area 1 saved.");
       uploaderSaveAssessments.textContent = "Saved";
       setTimeout(() => {
@@ -681,6 +690,7 @@ templateEngineOverride: njk
     try {
       await saveUploaderContentSelection({ includeAssessments: false, includeLinks: true });
       await loadUploaderData();
+      await refreshCourseStatusAfterUploaderUpdate();
       setMessage(uploaderLinksStatus, "Area 2 saved.");
       uploaderSaveLinks.textContent = "Saved";
       setTimeout(() => {
@@ -703,6 +713,7 @@ templateEngineOverride: njk
       await saveUploaderContentSelection({ includeAssessments: true, includeLinks: true });
       const uploadResult = await uploadUploaderPdfIfSelected();
       await loadUploaderData();
+      await refreshCourseStatusAfterUploaderUpdate();
 
       const pdfMessage = uploadResult.uploaded ? " PDF uploaded too." : "";
       setMessage(uploaderContentStatus, `${getSelectedUploaderCourseCode()} saved.${pdfMessage}`);
@@ -735,6 +746,7 @@ templateEngineOverride: njk
     try {
       await uploadUploaderPdfIfSelected();
       await loadUploaderData();
+      await refreshCourseStatusAfterUploaderUpdate();
       submitButton.textContent = "Uploaded";
       setTimeout(() => {
         submitButton.textContent = "Upload PDF";

@@ -223,6 +223,65 @@ function fileBufferLooksLikePdf(fileBuffer) {
   return fileBuffer.subarray(0, 4).toString("utf8") === "%PDF";
 }
 
+function hasPlaceholderText(value) {
+  return /replace\s+with/i.test(String(value || ""));
+}
+
+function evaluateOutlineCompleteness(assessments, assessmentLinks) {
+  const hasAssessments = Array.isArray(assessments)
+    && assessments.length >= 3
+    && assessments.every((item) => String(item || "").trim() && !hasPlaceholderText(item));
+
+  const hasLinkedButtons = Array.isArray(assessmentLinks)
+    && assessmentLinks.length >= 5
+    && assessmentLinks.every((link) => {
+      const label = String(link?.label || "").trim();
+      const url = String(link?.url || "").trim();
+      return Boolean(label) && Boolean(url) && url !== "#";
+    });
+
+  return hasAssessments && hasLinkedButtons;
+}
+
+async function syncCourseRequirementFromContent(courseCode, updatedBy) {
+  const safeCode = normalizeCourseCode(courseCode);
+  if (!safeCode) {
+    return;
+  }
+
+  const content = await getCourseContent(safeCode);
+  const outlineStatus = evaluateOutlineCompleteness(content.assessments, content.assessmentLinks)
+    ? "complete"
+    : "pending";
+  const statementStatus = content.hasStatementPdf ? "complete" : "pending";
+  const safeYear = new Date().getUTCFullYear();
+  const actorName = normalizeActorName(updatedBy);
+
+  await seedDefaultTermRequirements(safeYear);
+  await query(
+    `
+      UPDATE admin_term_requirements r
+      SET outline_status = $2,
+          statement_status = $3,
+          outline_updated_at = CASE
+            WHEN $2 = 'complete' AND r.outline_status <> 'complete' THEN NOW()
+            ELSE r.outline_updated_at
+          END,
+          statement_updated_at = CASE
+            WHEN $3 = 'complete' AND r.statement_status <> 'complete' THEN NOW()
+            ELSE r.statement_updated_at
+          END,
+          updated_by = $4
+      FROM admin_courses c
+      WHERE r.course_id = c.id
+        AND c.course_code = $1
+        AND r.school_year = $5
+        AND r.school_term IN ('T1', 'T3')
+    `,
+    [safeCode, outlineStatus, statementStatus, actorName, safeYear]
+  );
+}
+
 async function recordCourseContentActivity({ courseCode, activityType, actorName, detail }) {
   await query(
     `
@@ -360,6 +419,7 @@ async function upsertCourseContent(payload) {
     actorName,
     detail: `${assessments.length} assessments, ${assessmentLinks.length} buttons`
   });
+  await syncCourseRequirementFromContent(safeCode, actorName);
 
   return {
     ok: true,
@@ -420,6 +480,7 @@ async function saveCourseStatementPdf(payload) {
     actorName,
     detail: fileName
   });
+  await syncCourseRequirementFromContent(safeCode, actorName);
 
   return {
     ok: true,
