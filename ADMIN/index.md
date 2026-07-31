@@ -184,11 +184,11 @@ templateEngineOverride: njk
   const uploaderActivityLog = document.getElementById("uploader-activity-log");
 
   const DEFAULT_UPLOADER_COURSE_CODE = "11TEXT";
-  const UPLOADER_LINK_ROWS = 5;
+  const UPLOADER_LINK_ROWS = 7;
   const UPLOADER_ACTOR_STORAGE_KEY = "whsUploaderActorName";
   const LOCKED_BUTTON_LABELS = {
     0: "Health & Safety",
-    4: "Practical Skills"
+    6: "Practical Skills"
   };
 
   const yearInput = document.getElementById("filter-year");
@@ -235,6 +235,38 @@ templateEngineOverride: njk
 
   function getLockedButtonLabelsForSelectedCourse() {
     return LOCKED_BUTTON_LABELS;
+  }
+
+  function mapLinksToUploaderRows(links) {
+    const safeLinks = Array.isArray(links) ? links : [];
+    const rows = Array.from({ length: UPLOADER_LINK_ROWS }, () => ({ label: "", url: "#" }));
+    const lockedLabels = getLockedButtonLabelsForSelectedCourse();
+
+    if (safeLinks.length) {
+      rows[0] = {
+        ...rows[0],
+        ...safeLinks[0],
+        label: lockedLabels[0] || safeLinks[0].label || ""
+      };
+    }
+
+    safeLinks.slice(1, -1).forEach((link, index) => {
+      const rowIndex = index + 1;
+      if (rowIndex < UPLOADER_LINK_ROWS - 1) {
+        rows[rowIndex] = {
+          ...rows[rowIndex],
+          ...link
+        };
+      }
+    });
+
+    rows[UPLOADER_LINK_ROWS - 1] = {
+      ...rows[UPLOADER_LINK_ROWS - 1],
+      ...(safeLinks[safeLinks.length - 1] || {}),
+      label: lockedLabels[UPLOADER_LINK_ROWS - 1] || ""
+    };
+
+    return rows;
   }
 
   function syncUploaderCourseLabel() {
@@ -317,7 +349,7 @@ templateEngineOverride: njk
   }
 
   function renderUploaderLinks(links) {
-    const safeLinks = Array.isArray(links) ? links : [];
+    const safeLinks = mapLinksToUploaderRows(links);
     const lockedLabels = getLockedButtonLabelsForSelectedCourse();
     const rows = [];
 
@@ -365,6 +397,19 @@ templateEngineOverride: njk
       if (label) {
         output.push({ label, url });
       }
+    }
+
+    const lastLabel = (lockedLabels[UPLOADER_LINK_ROWS - 1] || "").trim();
+    const lastUrlInput = uploaderLinksWrap.querySelector(`[data-link-field='url'][data-link-index='${UPLOADER_LINK_ROWS - 1}']`);
+    const lastUrl = (lastUrlInput?.value || "#").trim() || "#";
+
+    if (lastLabel) {
+      const lastIndex = output.findIndex((link) => link.label === lastLabel);
+      if (lastIndex >= 0) {
+        output.splice(lastIndex, 1);
+      }
+
+      output.push({ label: lastLabel, url: lastUrl });
     }
 
     return output;
