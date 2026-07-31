@@ -61,7 +61,7 @@ layout: layouts/base.njk
             {{ link.label }}
           </a>
 
-          {% if loop.index == assessmentGroup.end %}
+          {% if loop.index == assessmentGroup.end or (loop.last and loop.index >= assessmentGroup.start) %}
             </div>
           {% endif %}
         {% endfor %}
@@ -113,10 +113,15 @@ layout: layouts/base.njk
   {% endif %}
 </section>
 
-{% if contentApiCourseCode %}
   <script>
     (async () => {
-      const courseCode = "{{ contentApiCourseCode }}";
+      const configuredCourseCode = "{{ contentApiCourseCode or '' }}";
+      const pathParts = window.location.pathname.split("/").filter(Boolean);
+      const courseCode = configuredCourseCode || pathParts[pathParts.length - 1] || "";
+
+      if (!courseCode) {
+        return;
+      }
 
       try {
         const response = await fetch(`/api/course-content/${courseCode}`, { credentials: "same-origin" });
@@ -135,8 +140,12 @@ layout: layouts/base.njk
 
         const chipRow = document.getElementById("course-chip-row");
         if (chipRow && Array.isArray(data.assessmentLinks) && data.assessmentLinks.length) {
-          const groupStart = {{ assessmentGroup.start if assessmentGroup else 0 }};
-          const groupEnd = {{ assessmentGroup.end if assessmentGroup else 0 }};
+          const configuredGroupStart = {{ assessmentGroup.start if assessmentGroup else 0 }};
+          const configuredGroupEnd = {{ assessmentGroup.end if assessmentGroup else 0 }};
+          const groupStart = configuredGroupStart;
+          const groupEnd = groupStart
+            ? Math.max(configuredGroupEnd, data.assessmentLinks.length - 1)
+            : configuredGroupEnd;
           let html = "";
 
           data.assessmentLinks.forEach((link, index) => {
@@ -159,7 +168,9 @@ layout: layouts/base.njk
 
             html += `<a class=\"${className}\" href=\"${url}\">${label}</a>`;
 
-            if (groupEnd && oneBased === groupEnd) {
+            const isLastLink = index === data.assessmentLinks.length - 1;
+
+            if (groupEnd && (oneBased === groupEnd || (isLastLink && oneBased >= groupStart))) {
               html += "</div>";
             }
           });
@@ -193,4 +204,3 @@ layout: layouts/base.njk
       }
     })();
   </script>
-{% endif %}
