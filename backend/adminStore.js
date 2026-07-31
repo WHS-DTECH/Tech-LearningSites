@@ -762,7 +762,10 @@ async function resetMwoodS2ContentFromPageIfNeeded(schoolYear) {
   const currentLinks = Array.isArray(row.assessment_links) ? row.assessment_links : [];
   const assessmentsLookDefault = currentAssessments.length === 0 || currentAssessments.every((item) => hasPlaceholderText(item));
   const linksLookDefault = currentLinks.length === 0 || currentLinks.every((link) => !isValidLink(link));
-  const needsReset = assessmentsLookDefault || linksLookDefault || !row.has_statement_pdf;
+  const firstUrl = String(currentLinks[0]?.url || "").trim();
+  const lastUrl = String(currentLinks[currentLinks.length - 1]?.url || "").trim();
+  const lockedEndpointsLinked = (firstUrl && firstUrl !== "#") || (lastUrl && lastUrl !== "#");
+  const needsReset = assessmentsLookDefault || linksLookDefault || !row.has_statement_pdf || lockedEndpointsLinked;
 
   if (!needsReset) {
     return;
@@ -775,7 +778,7 @@ async function resetMwoodS2ContentFromPageIfNeeded(schoolYear) {
 
   const assessments = normalizeAssessments(evidence.assessments);
   const assessmentLinks = applyLockedLinkLabels(courseCode, normalizeAssessmentLinks(evidence.assessmentLinks));
-  const actorName = "MWOOD-S2 reset";
+  const actorName = null;
 
   if (assessmentLinks.length) {
     assessmentLinks[0].url = "#";
@@ -791,7 +794,7 @@ async function resetMwoodS2ContentFromPageIfNeeded(schoolYear) {
           statement_mime = CASE WHEN $5::bytea IS NOT NULL THEN 'application/pdf' ELSE statement_mime END,
           statement_pdf = COALESCE($5, statement_pdf),
           updated_at = NOW(),
-          updated_by = $6
+          updated_by = COALESCE($6, updated_by)
       WHERE course_code = $1
     `,
     [
@@ -817,8 +820,8 @@ async function resetMwoodS2ContentFromPageIfNeeded(schoolYear) {
         AND r.school_year = $1
         AND r.school_term IN ('T1', 'T3')
         AND (
-          r.updated_by ILIKE 'page-evidence:%'
-          OR r.notes ILIKE 'Auto-marked complete%'
+          r.updated_by IS NOT NULL
+          OR r.notes IS NOT NULL
         )
     `,
     [schoolYear]
