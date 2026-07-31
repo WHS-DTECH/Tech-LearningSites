@@ -33,10 +33,11 @@ statement:
   embedUrl: "/WOOD/MWOOD-S2/Course%20Outline%20%26%20Assessment%20Statements/MWOOD-S2.pdf"
 postStatementEmbed:
   title: Middle School Woodwork
+  embed: false
   compact: true
-  url: "https://sites.google.com/westlandhigh.school.nz/hardmaterialswhswebsite/hard-materials-wood/middle-woodwork?embedded=true"
+  url: "https://sites.google.com/westlandhigh.school.nz/hardmaterialswhswebsite/hard-materials-wood/middle-woodwork"
   linkText: Open Google Site in new tab
   linkUrl: "https://sites.google.com/westlandhigh.school.nz/hardmaterialswhswebsite/hard-materials-wood/middle-woodwork"
-  height: 1600
+  note: Open the Google Site in a new tab to view the full page details.
 permalink: /WOOD/MWOOD-S2/
 ---

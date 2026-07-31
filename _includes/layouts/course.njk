@@ -101,7 +101,7 @@ layout: layouts/base.njk
 
   {% if postStatementEmbed and postStatementEmbed.url %}
     <section class="course-post-embed">
-      {% if not postStatementEmbed.compact %}
+      {% if postStatementEmbed.embed and not postStatementEmbed.compact %}
         <div class="course-post-embed-head">
           <h2 class="section-title">{{ postStatementEmbed.title or "Activities Running This Week" }}</h2>
           {% if postStatementEmbed.linkUrl %}
@@ -115,24 +115,33 @@ layout: layouts/base.njk
           <p class="course-post-embed-note">{{ postStatementEmbed.note }}</p>
         {% endif %}
       {% else %}
-        {% if postStatementEmbed.linkUrl %}
-          <div class="course-post-embed-actions">
+        <div class="course-post-link-card">
+          <div>
+            <h2 class="section-title">{{ postStatementEmbed.title or "Middle School Woodwork" }}</h2>
+            {% if postStatementEmbed.note %}
+              <p class="course-post-embed-note">{{ postStatementEmbed.note }}</p>
+            {% endif %}
+          </div>
+
+          {% if postStatementEmbed.linkUrl %}
             <a class="course-post-embed-link" href="{{ postStatementEmbed.linkUrl }}" target="_blank" rel="noopener noreferrer">
               {{ postStatementEmbed.linkText or "Open in new tab" }}
             </a>
-          </div>
-        {% endif %}
+          {% endif %}
+        </div>
       {% endif %}
 
-      <div class="course-post-embed-frame">
-        <iframe
-          src="{{ postStatementEmbed.url }}"
-          title="{{ postStatementEmbed.title or 'Embedded site' }}"
-          loading="lazy"
-          referrerpolicy="no-referrer"
-          style="height: {{ postStatementEmbed.height or 1400 }}px;"
-        ></iframe>
-      </div>
+      {% if postStatementEmbed.embed %}
+        <div class="course-post-embed-frame">
+          <iframe
+            src="{{ postStatementEmbed.url }}"
+            title="{{ postStatementEmbed.title or 'Embedded site' }}"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            style="height: {{ postStatementEmbed.height or 1400 }}px;"
+          ></iframe>
+        </div>
+      {% endif %}
     </section>
   {% endif %}
 

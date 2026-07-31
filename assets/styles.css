@@ -822,6 +822,23 @@ img {
   margin: 0 0 0.75rem;
 }
 
+.course-post-link-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  margin-bottom: 0.9rem;
+  border-radius: 18px;
+  border: 1px solid rgba(20, 33, 61, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 24px rgba(20, 33, 61, 0.08);
+}
+
+.course-post-link-card .course-post-embed-note {
+  margin-bottom: 0;
+}
+
 .course-post-embed-head {
   display: flex;
   align-items: center;
