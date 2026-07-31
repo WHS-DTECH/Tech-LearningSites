@@ -948,6 +948,11 @@ img {
   gap: 1rem;
 }
 
+.admin-login,
+.admin-dashboard {
+  width: min(calc(100% - 1rem), 1520px);
+}
+
 .admin-inline-form {
   display: flex;
   flex-wrap: wrap;
@@ -1282,7 +1287,7 @@ img {
 
 }
 
-@media (max-width: 560px) {
+@media (max-width: 420px) {
   .admin-uploader-grid {
     grid-template-columns: 1fr;
   }
