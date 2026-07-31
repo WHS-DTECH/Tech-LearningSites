@@ -132,6 +132,15 @@ async function initAdminSchema() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_by TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS admin_course_content_activity (
+      id SERIAL PRIMARY KEY,
+      course_code TEXT NOT NULL REFERENCES admin_courses(course_code) ON DELETE CASCADE,
+      activity_type TEXT NOT NULL CHECK (activity_type IN ('content-save', 'statement-upload')),
+      actor_name TEXT,
+      detail TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
   `);
 
   await seedSubjectsAndCourses();
@@ -201,6 +210,44 @@ async function ensureCourseContentRow(courseCode) {
   );
 }
 
+function normalizeActorName(value) {
+  return String(value || "").trim().slice(0, 80) || "Unknown staff";
+}
+
+function fileBufferLooksLikePdf(fileBuffer) {
+  if (!Buffer.isBuffer(fileBuffer) || fileBuffer.length < 4) {
+    return false;
+  }
+
+  return fileBuffer.subarray(0, 4).toString("utf8") === "%PDF";
+}
+
+async function recordCourseContentActivity({ courseCode, activityType, actorName, detail }) {
+  await query(
+    `
+      INSERT INTO admin_course_content_activity (course_code, activity_type, actor_name, detail)
+      VALUES ($1, $2, $3, $4)
+    `,
+    [courseCode, activityType, normalizeActorName(actorName), detail || null]
+  );
+}
+
+async function getCourseContentActivity(courseCode, limit = 12) {
+  const safeLimit = Number.isInteger(limit) ? Math.max(1, Math.min(limit, 50)) : 12;
+  const result = await query(
+    `
+      SELECT id, activity_type, actor_name, detail, created_at
+      FROM admin_course_content_activity
+      WHERE course_code = $1
+      ORDER BY created_at DESC, id DESC
+      LIMIT $2
+    `,
+    [courseCode, safeLimit]
+  );
+
+  return result.rows;
+}
+
 function defaultCourseContent(courseCode) {
   if (courseCode === "11TEXT") {
     return {
@@ -261,6 +308,7 @@ async function getCourseContent(courseCode) {
     safeCode,
     row.assessment_links?.length ? row.assessment_links : defaults.assessmentLinks
   );
+  const activity = await getCourseContentActivity(safeCode);
 
   return {
     courseCode: safeCode,
@@ -270,7 +318,8 @@ async function getCourseContent(courseCode) {
     statementFilename: row.statement_filename || null,
     statementMime: row.statement_mime || null,
     updatedAt: row.updated_at || null,
-    updatedBy: row.updated_by || null
+    updatedBy: row.updated_by || null,
+    activity
   };
 }
 
@@ -289,6 +338,7 @@ async function upsertCourseContent(payload) {
     safeCode,
     normalizeAssessmentLinks(payload.assessmentLinks)
   );
+  const actorName = normalizeActorName(payload.updatedBy);
 
   await ensureCourseContentRow(safeCode);
   await query(
@@ -300,14 +350,22 @@ async function upsertCourseContent(payload) {
           updated_by = COALESCE($4, updated_by)
       WHERE course_code = $1
     `,
-    [safeCode, JSON.stringify(assessments), JSON.stringify(assessmentLinks), payload.updatedBy || null]
+    [safeCode, JSON.stringify(assessments), JSON.stringify(assessmentLinks), actorName]
   );
+
+  await recordCourseContentActivity({
+    courseCode: safeCode,
+    activityType: "content-save",
+    actorName,
+    detail: `${assessments.length} assessments, ${assessmentLinks.length} buttons`
+  });
 
   return {
     ok: true,
     courseCode: safeCode,
     assessments,
-    assessmentLinks
+    assessmentLinks,
+    updatedBy: actorName
   };
 }
 
@@ -329,10 +387,17 @@ async function saveCourseStatementPdf(payload) {
     throw new Error("PDF is too large. Maximum size is 10MB.");
   }
 
-  const mimeType = payload.mimeType || "application/pdf";
-  if (mimeType !== "application/pdf") {
+  const fileName = String(payload.fileName || `${safeCode}-statement.pdf`).trim();
+  const mimeType = String(payload.mimeType || "").toLowerCase();
+  const fileNameLooksPdf = fileName.toLowerCase().endsWith(".pdf");
+  const fileBytesLookPdf = fileBufferLooksLikePdf(payload.fileBuffer);
+  const mimeIsAccepted = ["application/pdf", "application/x-pdf", "application/octet-stream", ""].includes(mimeType);
+
+  if (!mimeIsAccepted || (!fileNameLooksPdf && !fileBytesLookPdf)) {
     throw new Error("Only PDF uploads are supported");
   }
+
+  const actorName = normalizeActorName(payload.updatedBy);
 
   await ensureCourseContentRow(safeCode);
   await query(
@@ -345,13 +410,21 @@ async function saveCourseStatementPdf(payload) {
           updated_by = COALESCE($5, updated_by)
       WHERE course_code = $1
     `,
-    [safeCode, payload.fileName || `${safeCode}-statement.pdf`, mimeType, payload.fileBuffer, payload.updatedBy || null]
+    [safeCode, fileName, "application/pdf", payload.fileBuffer, actorName]
   );
+
+  await recordCourseContentActivity({
+    courseCode: safeCode,
+    activityType: "statement-upload",
+    actorName,
+    detail: fileName
+  });
 
   return {
     ok: true,
     courseCode: safeCode,
-    statementFilename: payload.fileName || `${safeCode}-statement.pdf`
+    statementFilename: fileName,
+    updatedBy: actorName
   };
 }
 

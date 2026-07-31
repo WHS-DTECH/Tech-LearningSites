@@ -299,8 +299,9 @@ async function handleAdminApi(request, response, requestUrl) {
 
   if (request.method === "POST" && pathname.startsWith("/api/admin/course-content/") && pathname.endsWith("/statement")) {
     const courseCode = pathname.replace("/api/admin/course-content/", "").replace("/statement", "");
-    const { files } = await readMultipartBody(request);
+    const { fields, files } = await readMultipartBody(request);
     const file = Array.isArray(files.statementPdf) ? files.statementPdf[0] : files.statementPdf;
+    const uploaderNameRaw = Array.isArray(fields.updatedBy) ? fields.updatedBy[0] : fields.updatedBy;
 
     if (!file || !file.filepath) {
       throw new Error("statementPdf file is required");
@@ -312,7 +313,7 @@ async function handleAdminApi(request, response, requestUrl) {
       fileName: file.originalFilename,
       mimeType: file.mimetype,
       fileBuffer,
-      updatedBy: "ADMIN uploader"
+      updatedBy: uploaderNameRaw || "ADMIN uploader"
     });
 
     sendJson(response, 200, result);
@@ -326,7 +327,7 @@ async function handleAdminApi(request, response, requestUrl) {
       courseCode,
       assessments: body.assessments,
       assessmentLinks: body.assessmentLinks,
-      updatedBy: "ADMIN uploader"
+      updatedBy: body.updatedBy || "ADMIN uploader"
     });
 
     sendJson(response, 200, result);

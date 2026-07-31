@@ -125,8 +125,15 @@ permalink: /ADMIN/
     </div>
 
     <div class="admin-uploader-actions">
+      <label class="admin-field-label" for="uploader-actor-name">Uploaded by</label>
+      <input id="uploader-actor-name" class="admin-inline-input" type="text" maxlength="80" placeholder="Staff name">
       <button id="uploader-save-content" type="button" class="button">Save 11TEXT Content</button>
       <p id="uploader-content-status" class="admin-message"></p>
+    </div>
+
+    <div class="admin-uploader-actions">
+      <p id="uploader-last-update" class="admin-message"></p>
+      <div id="uploader-activity-log" class="admin-uploader-activity"></div>
     </div>
   </section>
 </section>
@@ -153,9 +160,13 @@ permalink: /ADMIN/
   const uploaderPdfForm = document.getElementById("uploader-pdf-form");
   const uploaderPdfInput = document.getElementById("uploader-statement-pdf");
   const uploaderPdfStatus = document.getElementById("uploader-pdf-status");
+  const uploaderActorName = document.getElementById("uploader-actor-name");
+  const uploaderLastUpdate = document.getElementById("uploader-last-update");
+  const uploaderActivityLog = document.getElementById("uploader-activity-log");
 
   const UPLOADER_COURSE_CODE = "11TEXT";
   const UPLOADER_LINK_ROWS = 5;
+  const UPLOADER_ACTOR_STORAGE_KEY = "whsUploaderActorName";
   const LOCKED_BUTTON_LABELS = {
     0: "Health & Safety",
     4: "Practical Skills"
@@ -168,11 +179,54 @@ permalink: /ADMIN/
 
   yearInput.value = new Date().getFullYear();
   termInput.value = "T1";
+  uploaderActorName.value = localStorage.getItem(UPLOADER_ACTOR_STORAGE_KEY) || "";
+
+  uploaderActorName.addEventListener("input", () => {
+    localStorage.setItem(UPLOADER_ACTOR_STORAGE_KEY, uploaderActorName.value.trim());
+  });
 
   function setMessage(element, message, isError = false) {
     element.hidden = !message;
     element.textContent = message || "";
     element.classList.toggle("is-error", Boolean(message && isError));
+  }
+
+  function formatDateTime(value) {
+    if (!value) {
+      return "";
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    return date.toLocaleString();
+  }
+
+  function getUploaderActorName() {
+    const name = String(uploaderActorName?.value || "").trim();
+    return name || "Unknown staff";
+  }
+
+  function renderUploaderActivity(activity) {
+    if (!Array.isArray(activity) || !activity.length) {
+      uploaderActivityLog.innerHTML = "<p class=\"admin-message\">No uploader activity recorded yet.</p>";
+      return;
+    }
+
+    const items = activity.map((entry) => {
+      const when = formatDateTime(entry.created_at) || "Unknown date";
+      const who = escapeHtml(entry.actor_name || "Unknown staff");
+      const action = entry.activity_type === "statement-upload" ? "Uploaded statement PDF" : "Saved content";
+      const detail = entry.detail ? ` - ${escapeHtml(entry.detail)}` : "";
+      return `<li><strong>${who}</strong> ${action} on ${escapeHtml(when)}${detail}</li>`;
+    });
+
+    uploaderActivityLog.innerHTML = `
+      <h4>Recent uploader activity</h4>
+      <ul>${items.join("")}</ul>
+    `;
   }
 
   function escapeHtml(value) {
@@ -272,6 +326,11 @@ permalink: /ADMIN/
     } else {
       setMessage(uploaderPdfStatus, "No statement PDF uploaded yet.");
     }
+
+    const when = formatDateTime(data.updatedAt);
+    const who = data.updatedBy || "Unknown staff";
+    setMessage(uploaderLastUpdate, when ? `Last update: ${who} on ${when}` : "No updates saved yet.");
+    renderUploaderActivity(data.activity || []);
   }
 
   async function checkSession() {
@@ -497,10 +556,11 @@ permalink: /ADMIN/
 
       await apiRequest(`/api/admin/course-content/${UPLOADER_COURSE_CODE}`, {
         method: "POST",
-        body: JSON.stringify({ assessments, assessmentLinks })
+        body: JSON.stringify({ assessments, assessmentLinks, updatedBy: getUploaderActorName() })
       });
 
       setMessage(uploaderContentStatus, "11TEXT content saved.");
+      await loadUploaderData();
       uploaderSaveContent.textContent = "Saved";
       setTimeout(() => {
         uploaderSaveContent.textContent = "Save 11TEXT Content";
@@ -525,6 +585,7 @@ permalink: /ADMIN/
 
     const formData = new FormData();
     formData.append("statementPdf", file);
+    formData.append("updatedBy", getUploaderActorName());
 
     const submitButton = uploaderPdfForm.querySelector("button[type='submit']");
     submitButton.disabled = true;
@@ -537,6 +598,7 @@ permalink: /ADMIN/
       });
 
       setMessage(uploaderPdfStatus, `Uploaded ${file.name}`);
+      await loadUploaderData();
       uploaderPdfInput.value = "";
       submitButton.textContent = "Uploaded";
       setTimeout(() => {
