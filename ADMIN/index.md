@@ -81,7 +81,7 @@ templateEngineOverride: njk
           <tr>
             <th>Course</th>
             <th>Subject</th>
-            <th>Assessments</th>
+            <th>Assessment List</th>
             <th>Topic Buttons</th>
             <th>PDF Statement</th>
             <th>Health &amp; Safety</th>
