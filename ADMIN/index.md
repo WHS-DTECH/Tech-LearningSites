@@ -70,8 +70,8 @@ permalink: /ADMIN/
   <div class="admin-subject-grid" id="admin-subjects"></div>
 
   <div class="admin-tab-control" role="tablist" aria-label="Admin content pages">
-    <button id="admin-tab-course" class="admin-tab-button is-active" role="tab" type="button" aria-selected="true" aria-controls="admin-panel-course">Page 1 - Course Status</button>
-    <button id="admin-tab-uploader" class="admin-tab-button" role="tab" type="button" aria-selected="false" aria-controls="admin-panel-uploader">Page 2 - 11TEXT Uploader</button>
+    <button id="admin-tab-course" class="admin-tab-button is-active" role="tab" type="button" aria-selected="true" aria-controls="admin-panel-course">Course Status</button>
+    <button id="admin-tab-uploader" class="admin-tab-button" role="tab" type="button" aria-selected="false" aria-controls="admin-panel-uploader">11TEXT Uploader</button>
   </div>
 
   <section id="admin-panel-course" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-course">

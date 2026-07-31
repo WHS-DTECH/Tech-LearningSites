@@ -1222,6 +1222,9 @@ img {
     flex-wrap: wrap;
   }
 
+}
+
+@media (max-width: 560px) {
   .admin-uploader-grid {
     grid-template-columns: 1fr;
   }
