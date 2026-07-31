@@ -1296,6 +1296,25 @@ img {
   min-width: 220px;
 }
 
+#uploader-drive-sync-button {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border: 1px solid rgba(251, 191, 36, 0.7);
+  color: #fff7ed;
+}
+
+#uploader-drive-match-button {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  border: 1px solid rgba(252, 165, 165, 0.7);
+  color: #fff1f2;
+}
+
+#uploader-drive-sync-button:hover,
+#uploader-drive-sync-button:focus-visible,
+#uploader-drive-match-button:hover,
+#uploader-drive-match-button:focus-visible {
+  filter: brightness(1.08);
+}
+
 #uploader-save-assessments {
   background: linear-gradient(135deg, #14b8a6, #0f766e);
   border: 1px solid rgba(16, 185, 129, 0.6);
