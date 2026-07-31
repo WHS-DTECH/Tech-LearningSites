@@ -534,6 +534,12 @@ img {
     max-width: 70ch;
   }
 
+  .subject-activity-empty-message {
+    margin: 0.5rem 0 0;
+    color: var(--muted);
+    font-style: italic;
+  }
+
   .subject-activity-link {
     display: inline-flex;
     align-items: center;
@@ -570,6 +576,26 @@ img {
   .subject-activity-item:focus-visible {
     transform: translateY(-2px);
     box-shadow: 0 14px 30px rgba(20, 33, 61, 0.12);
+  }
+
+  .subject-activity-placeholder {
+    border: 2px dashed rgba(20, 33, 61, 0.2);
+    background: rgba(255, 255, 255, 0.6);
+    box-shadow: none;
+  }
+
+  .subject-activity-placeholder:hover,
+  .subject-activity-placeholder:focus-visible {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .subject-activity-placeholder .subject-activity-copy {
+    text-align: center;
+  }
+
+  .subject-activity-placeholder .subject-activity-copy h3 {
+    color: rgba(20, 33, 61, 0.6);
   }
 
   .subject-activity-image-wrap {

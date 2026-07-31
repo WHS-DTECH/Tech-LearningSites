@@ -38,7 +38,7 @@ layout: layouts/base.njk
   </div>
 </section>
 
-{% if activitySection and activitySection.cards %}
+{% if activitySection %}
   <section class="page-shell subject-activity-wrap">
     <article class="subject-activity-card">
       <div class="subject-activity-head">
@@ -46,6 +46,9 @@ layout: layouts/base.njk
           <h2 class="section-title">{{ activitySection.title or "Activities Running This Week" }}</h2>
           {% if activitySection.description %}
             <p class="subject-activity-note">{{ activitySection.description }}</p>
+          {% endif %}
+          {% if activitySection.emptyMessage %}
+            <p class="subject-activity-empty-message">{{ activitySection.emptyMessage }}</p>
           {% endif %}
         </div>
 
@@ -57,22 +60,34 @@ layout: layouts/base.njk
       </div>
 
       <div class="subject-activity-grid">
-        {% for card in activitySection.cards %}
-          <a class="subject-activity-item" href="{{ activitySection.linkUrl or card.url }}" target="_blank" rel="noopener noreferrer">
-            <div class="subject-activity-image-wrap">
-              {% if card.image %}
-                <img src="{{ card.image }}" alt="{{ card.title }}">
-              {% endif %}
-            </div>
-            <div class="subject-activity-copy">
-              {% if card.meta %}
-                <p class="subject-activity-meta">{{ card.meta }}</p>
-              {% endif %}
-              <h3>{{ card.title }}</h3>
-              <p>{{ card.summary }}</p>
-              <span class="subject-activity-open">Open in TECH-HUB</span>
-            </div>
-          </a>
+        {% for card in activitySection.cards or [] %}
+          {% if card.placeholder %}
+            <article class="subject-activity-item subject-activity-placeholder" aria-hidden="true">
+              <div class="subject-activity-image-wrap"></div>
+              <div class="subject-activity-copy">
+                <h3>{{ card.title or "Recipe Slot" }}</h3>
+                {% if card.summary %}
+                  <p>{{ card.summary }}</p>
+                {% endif %}
+              </div>
+            </article>
+          {% else %}
+            <a class="subject-activity-item" href="{{ activitySection.linkUrl or card.url }}" target="_blank" rel="noopener noreferrer">
+              <div class="subject-activity-image-wrap">
+                {% if card.image %}
+                  <img src="{{ card.image }}" alt="{{ card.title }}">
+                {% endif %}
+              </div>
+              <div class="subject-activity-copy">
+                {% if card.meta %}
+                  <p class="subject-activity-meta">{{ card.meta }}</p>
+                {% endif %}
+                <h3>{{ card.title }}</h3>
+                <p>{{ card.summary }}</p>
+                <span class="subject-activity-open">{{ activitySection.openLabel or "Open in TECH-HUB" }}</span>
+              </div>
+            </a>
+          {% endif %}
         {% endfor %}
       </div>
     </article>

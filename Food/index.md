@@ -4,7 +4,26 @@ title: Food
 shortTitle: Hospitality Learning Area
 displayTitle: Food Nutrition & Hospitality
 summary: Course pages for junior food learning, middle school practical courses, and senior hospitality or nutrition pathways.
-lead: Keep practical notices, ingredients, due dates, and kitchen expectations up to date from this one page.
+activitySection:
+  title: "Students Cooking This Week: 27 July - 2 August"
+  description: Keep this panel aligned with the Food Room weekly booking list.
+  emptyMessage: No recipes are booked for this week yet.
+  linkText: Open in Food Room
+  linkUrl: "https://recipe-calculator-backend.onrender.com/index.html"
+  openLabel: Open in Food Room
+  cards:
+    - placeholder: true
+      title: Recipe Slot
+    - placeholder: true
+      title: Recipe Slot
+    - placeholder: true
+      title: Recipe Slot
+    - placeholder: true
+      title: Recipe Slot
+    - placeholder: true
+      title: Recipe Slot
+    - placeholder: true
+      title: Recipe Slot
 schoolGroups:
   - title: Junior School
     subtitle: Foundation food and nutrition learning
@@ -30,28 +49,5 @@ schoolGroups:
         url: "/Food/12HOSP/"
       - label: 13HOSP - Year 13 Hospitality
         url: "/Food/13HOSP/"
-quickLinks:
-  - label: Recipe bank
-    url: "#"
-    description: Replace with the main collection of recipes or practical sheets.
-  - label: Safety expectations
-    url: "#"
-    description: Link to hygiene routines and kitchen safety guidance.
-  - label: Assessment guide
-    url: "#"
-    description: Add the document students use for planning or written reflection.
 permalink: /Food/
 ---
-## Upcoming practical work
-
-Add the next practical tasks here. Include what students need to know before class and any preparation they should complete.
-
-## Equipment and ingredients
-
-- List any special items students need.
-- Add notes for families if ingredients need advance planning.
-- Keep allergy or safety notices prominent when relevant.
-
-## Progress checks
-
-Use this section for deadlines, evaluations, or catch-up expectations.
