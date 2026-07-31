@@ -6,10 +6,8 @@ const STATUS_VALUES = new Set(["pending", "complete"]);
 const TERM_VALUES = new Set(["T1", "T3"]);
 const COURSE_CONTENT_TARGETS = new Set(["11TEXT"]);
 const LOCKED_LINK_LABELS = {
-  "11TEXT": {
-    first: "Health & Safety",
-    last: "Practical Skills"
-  }
+  first: "Health & Safety",
+  last: "Practical Skills"
 };
 
 const COURSE_SEED = [
@@ -184,21 +182,19 @@ function normalizeAssessmentLinks(input) {
 }
 
 function applyLockedLinkLabels(courseCode, links) {
-  const lockConfig = LOCKED_LINK_LABELS[courseCode];
-
-  if (!lockConfig || !Array.isArray(links) || !links.length) {
+  if (!Array.isArray(links) || !links.length) {
     return links;
   }
 
   const output = links.map((link) => ({ ...link }));
   output[0] = {
     ...output[0],
-    label: lockConfig.first
+    label: LOCKED_LINK_LABELS.first
   };
 
   output[output.length - 1] = {
     ...output[output.length - 1],
-    label: lockConfig.last
+    label: LOCKED_LINK_LABELS.last
   };
 
   return output;

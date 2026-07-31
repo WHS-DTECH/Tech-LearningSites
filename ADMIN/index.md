@@ -186,11 +186,9 @@ templateEngineOverride: njk
   const DEFAULT_UPLOADER_COURSE_CODE = "11TEXT";
   const UPLOADER_LINK_ROWS = 5;
   const UPLOADER_ACTOR_STORAGE_KEY = "whsUploaderActorName";
-  const LOCKED_BUTTON_LABELS_BY_COURSE = {
-    "11TEXT": {
-      0: "Health & Safety",
-      4: "Practical Skills"
-    }
+  const LOCKED_BUTTON_LABELS = {
+    0: "Health & Safety",
+    4: "Practical Skills"
   };
 
   const yearInput = document.getElementById("filter-year");
@@ -236,7 +234,7 @@ templateEngineOverride: njk
   }
 
   function getLockedButtonLabelsForSelectedCourse() {
-    return LOCKED_BUTTON_LABELS_BY_COURSE[getSelectedUploaderCourseCode()] || {};
+    return LOCKED_BUTTON_LABELS;
   }
 
   function syncUploaderCourseLabel() {
