@@ -311,7 +311,7 @@ function evaluateHealthSafetyStatus(assessmentLinks) {
     return "not_started";
   }
 
-  return isValidLink(firstLink) ? "complete" : "not_started";
+  return isValidLink(firstLink) ? "complete" : "incomplete";
 }
 
 function evaluatePracticalSkillsStatus(assessmentLinks) {
@@ -323,7 +323,7 @@ function evaluatePracticalSkillsStatus(assessmentLinks) {
     return "not_started";
   }
 
-  return isValidLink(lastLink) ? "complete" : "not_started";
+  return isValidLink(lastLink) ? "complete" : "incomplete";
 }
 
 function evaluateTopicButtonsStatus(assessments, assessmentLinks) {
@@ -775,7 +775,12 @@ async function resetMwoodS2ContentFromPageIfNeeded(schoolYear) {
 
   const assessments = normalizeAssessments(evidence.assessments);
   const assessmentLinks = applyLockedLinkLabels(courseCode, normalizeAssessmentLinks(evidence.assessmentLinks));
-  const actorName = "page-evidence: MWOOD-S2";
+  const actorName = "MWOOD-S2 reset";
+
+  if (assessmentLinks.length) {
+    assessmentLinks[0].url = "#";
+    assessmentLinks[assessmentLinks.length - 1].url = "#";
+  }
 
   await query(
     `
@@ -800,41 +805,29 @@ async function resetMwoodS2ContentFromPageIfNeeded(schoolYear) {
   );
 
   await syncCourseRequirementFromContent(courseCode, actorName, schoolYear);
-}
-
-async function applyEvidenceOverrides(year) {
-  // MWOOD-S2 is currently maintained as fully updated and can be used as evidence.
-  if (!hasMwoodS2Evidence()) {
-    return;
-  }
 
   await query(
     `
       UPDATE admin_term_requirements r
-      SET outline_status = 'complete',
-          statement_status = 'complete',
-          assessments_status = 'complete',
-          pdf_statement_status = 'complete',
-          health_safety_status = 'complete',
-          practical_skills_status = 'complete',
-          topic_buttons_status = 'complete',
-          outline_updated_at = COALESCE(r.outline_updated_at, NOW()),
-          statement_updated_at = COALESCE(r.statement_updated_at, NOW()),
-          assessments_updated_at = COALESCE(r.assessments_updated_at, NOW()),
-          pdf_statement_updated_at = COALESCE(r.pdf_statement_updated_at, NOW()),
-          health_safety_updated_at = COALESCE(r.health_safety_updated_at, NOW()),
-          practical_skills_updated_at = COALESCE(r.practical_skills_updated_at, NOW()),
-          topic_buttons_updated_at = COALESCE(r.topic_buttons_updated_at, NOW()),
-          updated_by = COALESCE(r.updated_by, 'evidence: MWOOD-S2 page'),
-          notes = COALESCE(r.notes, 'Auto-marked complete from MWOOD-S2 course page evidence')
+      SET updated_by = NULL,
+          notes = NULL
       FROM admin_courses c
       WHERE r.course_id = c.id
         AND c.course_code = 'MWOOD-S2'
         AND r.school_year = $1
         AND r.school_term IN ('T1', 'T3')
+        AND (
+          r.updated_by ILIKE 'page-evidence:%'
+          OR r.notes ILIKE 'Auto-marked complete%'
+        )
     `,
-    [year]
+    [schoolYear]
   );
+}
+
+async function applyEvidenceOverrides(year) {
+  // Legacy override retired: statuses are now derived from course content data.
+  void year;
 }
 
 async function seedSubjectsAndCourses() {
