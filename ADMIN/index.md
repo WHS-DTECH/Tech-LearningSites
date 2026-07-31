@@ -156,6 +156,10 @@ permalink: /ADMIN/
 
   const UPLOADER_COURSE_CODE = "11TEXT";
   const UPLOADER_LINK_ROWS = 5;
+  const LOCKED_BUTTON_LABELS = {
+    0: "Health & Safety",
+    4: "Practical Skills"
+  };
 
   const yearInput = document.getElementById("filter-year");
   const termInput = document.getElementById("filter-term");
@@ -210,15 +214,18 @@ permalink: /ADMIN/
 
     for (let i = 0; i < UPLOADER_LINK_ROWS; i += 1) {
       const link = safeLinks[i] || { label: "", url: "#" };
+      const lockedLabel = LOCKED_BUTTON_LABELS[i];
+      const labelValue = lockedLabel || link.label || "";
       rows.push(`
         <div class="admin-uploader-link-row">
           <input
             type="text"
-            class="admin-inline-input"
+            class="admin-inline-input${lockedLabel ? " is-locked" : ""}"
             data-link-field="label"
             data-link-index="${i}"
-            value="${escapeHtml(link.label || "")}"
+            value="${escapeHtml(labelValue)}"
             placeholder="Button ${i + 1} label"
+            ${lockedLabel ? "readonly aria-readonly=\"true\"" : ""}
           >
           <input
             type="text"
@@ -242,7 +249,7 @@ permalink: /ADMIN/
       const labelInput = uploaderLinksWrap.querySelector(`[data-link-field='label'][data-link-index='${i}']`);
       const urlInput = uploaderLinksWrap.querySelector(`[data-link-field='url'][data-link-index='${i}']`);
 
-      const label = (labelInput?.value || "").trim();
+      const label = (LOCKED_BUTTON_LABELS[i] || labelInput?.value || "").trim();
       const url = (urlInput?.value || "#").trim() || "#";
 
       if (label) {

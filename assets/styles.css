@@ -1190,6 +1190,11 @@ img {
   margin-bottom: 0.55rem;
 }
 
+.admin-inline-input.is-locked {
+  background: rgba(20, 33, 61, 0.06);
+  font-weight: 700;
+}
+
 .admin-uploader-actions {
   display: flex;
   align-items: center;

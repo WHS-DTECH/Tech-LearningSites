@@ -5,6 +5,12 @@ const path = require("path");
 const STATUS_VALUES = new Set(["pending", "complete"]);
 const TERM_VALUES = new Set(["T1", "T3"]);
 const COURSE_CONTENT_TARGETS = new Set(["11TEXT"]);
+const LOCKED_LINK_LABELS = {
+  "11TEXT": {
+    first: "Health & Safety",
+    last: "Practical Skills"
+  }
+};
 
 const COURSE_SEED = [
   { subjectCode: "DTECH", courseCode: "JDTECH", courseName: "Junior Digital Tech" },
@@ -163,6 +169,27 @@ function normalizeAssessmentLinks(input) {
     .slice(0, 10);
 }
 
+function applyLockedLinkLabels(courseCode, links) {
+  const lockConfig = LOCKED_LINK_LABELS[courseCode];
+
+  if (!lockConfig || !Array.isArray(links) || !links.length) {
+    return links;
+  }
+
+  const output = links.map((link) => ({ ...link }));
+  output[0] = {
+    ...output[0],
+    label: lockConfig.first
+  };
+
+  output[output.length - 1] = {
+    ...output[output.length - 1],
+    label: lockConfig.last
+  };
+
+  return output;
+}
+
 async function ensureCourseContentRow(courseCode) {
   await query(
     `
@@ -183,7 +210,7 @@ function defaultCourseContent(courseCode) {
         "Replace with assessment 3."
       ],
       assessmentLinks: [
-        { label: "Course overview", url: "#" },
+        { label: "Health & Safety", url: "#" },
         { label: "Assessment statement", url: "#" },
         { label: "Workshop tools", url: "#" },
         { label: "Project checklist", url: "#" },
@@ -230,11 +257,15 @@ async function getCourseContent(courseCode) {
 
   const row = result.rows[0];
   const defaults = defaultCourseContent(safeCode);
+  const normalizedLinks = applyLockedLinkLabels(
+    safeCode,
+    row.assessment_links?.length ? row.assessment_links : defaults.assessmentLinks
+  );
 
   return {
     courseCode: safeCode,
     assessments: row.assessments?.length ? row.assessments : defaults.assessments,
-    assessmentLinks: row.assessment_links?.length ? row.assessment_links : defaults.assessmentLinks,
+    assessmentLinks: normalizedLinks,
     hasStatementPdf: Boolean(row.has_statement_pdf),
     statementFilename: row.statement_filename || null,
     statementMime: row.statement_mime || null,
@@ -254,7 +285,10 @@ async function upsertCourseContent(payload) {
   }
 
   const assessments = normalizeAssessments(payload.assessments);
-  const assessmentLinks = normalizeAssessmentLinks(payload.assessmentLinks);
+  const assessmentLinks = applyLockedLinkLabels(
+    safeCode,
+    normalizeAssessmentLinks(payload.assessmentLinks)
+  );
 
   await ensureCourseContentRow(safeCode);
   await query(
