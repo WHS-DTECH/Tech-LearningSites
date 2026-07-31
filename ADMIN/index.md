@@ -69,57 +69,66 @@ permalink: /ADMIN/
   <h3 class="admin-subhead">By Subject</h3>
   <div class="admin-subject-grid" id="admin-subjects"></div>
 
-  <h3 class="admin-subhead">Course Status</h3>
-  <p id="admin-courses-message" class="admin-message" hidden></p>
-  <div class="admin-table-wrap">
-    <table class="admin-table" id="admin-courses-table">
-      <thead>
-        <tr>
-          <th>Course</th>
-          <th>Subject</th>
-          <th>Outline</th>
-          <th>Statement</th>
-          <th>Dashboard</th>
-          <th>Updated by</th>
-          <th>Notes</th>
-          <th>Save</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <div class="admin-tab-control" role="tablist" aria-label="Admin content pages">
+    <button id="admin-tab-course" class="admin-tab-button is-active" role="tab" type="button" aria-selected="true" aria-controls="admin-panel-course">Page 1 - Course Status</button>
+    <button id="admin-tab-uploader" class="admin-tab-button" role="tab" type="button" aria-selected="false" aria-controls="admin-panel-uploader">Page 2 - 11TEXT Uploader</button>
   </div>
 
-  <h3 class="admin-subhead">11TEXT Uploader</h3>
-  <p class="admin-message">Use this uploader to update the 11TEXT course page content directly.</p>
+  <section id="admin-panel-course" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-course">
+    <h3 class="admin-subhead">Course Status</h3>
+    <p id="admin-courses-message" class="admin-message" hidden></p>
+    <div class="admin-table-wrap">
+      <table class="admin-table" id="admin-courses-table">
+        <thead>
+          <tr>
+            <th>Course</th>
+            <th>Subject</th>
+            <th>Outline</th>
+            <th>Statement</th>
+            <th>Dashboard</th>
+            <th>Updated by</th>
+            <th>Notes</th>
+            <th>Save</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
 
-  <div class="admin-uploader-grid">
-    <article class="admin-uploader-card">
-      <h4>Area 1: Assessments List</h4>
-      <p>Enter one assessment per line.</p>
-      <textarea id="uploader-assessments" class="admin-uploader-textarea" rows="6" placeholder="Standard number and short assessment name"></textarea>
-    </article>
+  <section id="admin-panel-uploader" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-uploader" hidden>
+    <h3 class="admin-subhead">11TEXT Uploader</h3>
+    <p class="admin-message">Use this uploader to update the 11TEXT course page content directly.</p>
 
-    <article class="admin-uploader-card">
-      <h4>Area 2: Red Bordered Buttons</h4>
-      <p>Set the short label and destination URL for each button.</p>
-      <div id="uploader-links"></div>
-    </article>
+    <div class="admin-uploader-grid">
+      <article class="admin-uploader-card">
+        <h4>Area 1: Assessments List</h4>
+        <p>Enter one assessment per line.</p>
+        <textarea id="uploader-assessments" class="admin-uploader-textarea" rows="6" placeholder="Standard number and short assessment name"></textarea>
+      </article>
 
-    <article class="admin-uploader-card">
-      <h4>Area 3: Assessment Statement PDF</h4>
-      <p>Upload the latest PDF statement for 11TEXT.</p>
-      <form id="uploader-pdf-form" class="admin-inline-form">
-        <input id="uploader-statement-pdf" type="file" accept="application/pdf">
-        <button type="submit" class="button-secondary">Upload PDF</button>
-      </form>
-      <p id="uploader-pdf-status" class="admin-message"></p>
-    </article>
-  </div>
+      <article class="admin-uploader-card">
+        <h4>Area 2: Red Bordered Buttons</h4>
+        <p>Set the short label and destination URL for each button.</p>
+        <div id="uploader-links"></div>
+      </article>
 
-  <div class="admin-uploader-actions">
-    <button id="uploader-save-content" type="button" class="button">Save 11TEXT Content</button>
-    <p id="uploader-content-status" class="admin-message"></p>
-  </div>
+      <article class="admin-uploader-card">
+        <h4>Area 3: Assessment Statement PDF</h4>
+        <p>Upload the latest PDF statement for 11TEXT.</p>
+        <form id="uploader-pdf-form" class="admin-inline-form">
+          <input id="uploader-statement-pdf" type="file" accept="application/pdf">
+          <button type="submit" class="button-secondary">Upload PDF</button>
+        </form>
+        <p id="uploader-pdf-status" class="admin-message"></p>
+      </article>
+    </div>
+
+    <div class="admin-uploader-actions">
+      <button id="uploader-save-content" type="button" class="button">Save 11TEXT Content</button>
+      <p id="uploader-content-status" class="admin-message"></p>
+    </div>
+  </section>
 </section>
 
 <script>
@@ -133,6 +142,10 @@ permalink: /ADMIN/
   const summaryEl = document.getElementById("admin-summary");
   const subjectsEl = document.getElementById("admin-subjects");
   const coursesTableBody = document.querySelector("#admin-courses-table tbody");
+  const tabCourseButton = document.getElementById("admin-tab-course");
+  const tabUploaderButton = document.getElementById("admin-tab-uploader");
+  const panelCourse = document.getElementById("admin-panel-course");
+  const panelUploader = document.getElementById("admin-panel-uploader");
   const uploaderAssessments = document.getElementById("uploader-assessments");
   const uploaderLinksWrap = document.getElementById("uploader-links");
   const uploaderSaveContent = document.getElementById("uploader-save-content");
@@ -273,6 +286,17 @@ permalink: /ADMIN/
     loginSection.hidden = false;
   }
 
+  function setActiveTab(tabName) {
+    const isCourse = tabName === "course";
+
+    tabCourseButton.classList.toggle("is-active", isCourse);
+    tabUploaderButton.classList.toggle("is-active", !isCourse);
+    tabCourseButton.setAttribute("aria-selected", String(isCourse));
+    tabUploaderButton.setAttribute("aria-selected", String(!isCourse));
+    panelCourse.hidden = !isCourse;
+    panelUploader.hidden = isCourse;
+  }
+
   function renderSummary(summary) {
     const cards = [
       { label: "Total courses", value: summary.total_courses },
@@ -396,6 +420,9 @@ permalink: /ADMIN/
     showLogin();
   });
 
+  tabCourseButton.addEventListener("click", () => setActiveTab("course"));
+  tabUploaderButton.addEventListener("click", () => setActiveTab("uploader"));
+
   filtersForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -517,6 +544,8 @@ permalink: /ADMIN/
   });
 
   (async () => {
+    setActiveTab("course");
+
     const authenticated = await checkSession();
 
     if (!authenticated) {

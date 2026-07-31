@@ -1031,6 +1031,33 @@ img {
   font-family: "Fraunces", Georgia, serif;
 }
 
+.admin-tab-control {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.admin-tab-button {
+  border: 1px solid rgba(20, 33, 61, 0.22);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--ink);
+  border-radius: 10px 10px 0 0;
+  padding: 0.45rem 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-tab-button.is-active {
+  border-color: rgba(217, 108, 6, 0.65);
+  box-shadow: inset 0 -2px 0 rgba(217, 108, 6, 0.75);
+  background: #fffaf3;
+}
+
+.admin-tab-panel {
+  padding-top: 0.45rem;
+}
+
 .admin-subject-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -1189,6 +1216,10 @@ img {
   .admin-summary-grid,
   .admin-subject-grid {
     grid-template-columns: 1fr;
+  }
+
+  .admin-tab-control {
+    flex-wrap: wrap;
   }
 
   .admin-uploader-grid {
