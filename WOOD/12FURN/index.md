@@ -1,21 +1,35 @@
 ---
-layout: layouts/program.njk
+layout: layouts/course.njk
 title: 12FURN | WOOD
-shortTitle: 12FURN
-displayTitle: 12FURN - Year 12 Furniture
-summary: Year 12 Furniture course page.
-lead: Add Year 12 furniture projects, resources, and weekly notices here.
+shortTitle: Technology Learning Area
+titleLines:
+  - 12FURN
+  - Year 12 Furniture
+summary: 12FURN course page with assessments, resources, and project statements.
+lead: Keep this page current with weekly workshop tasks, safety expectations, and assessment checkpoints.
+hideContent: true
+assessments:
+  - code: Replace with assessment 1.
+  - code: Replace with assessment 2.
+  - code: Replace with assessment 3.
+assessmentLinks:
+  - label: Course overview
+    url: "#"
+  - label: Assessment statement
+    url: "#"
+  - label: Workshop tools
+    url: "#"
+  - label: Project checklist
+    url: "#"
+  - label: Practical skills
+    url: "#"
+assessmentGroup:
+  start: 2
+  end: 4
+  ariaLabel: Assessment-related links
+statement:
+  title: Assessment statement
+  open: true
+  downloadUrl: "#"
 permalink: /WOOD/12FURN/
 ---
-## Current project
-
-Add the current project details here.
-
-## Materials and preparation
-
-- Add equipment, materials, and resource notes.
-- Include class routines or preparation expectations.
-
-## Assessment and feedback
-
-Keep checkpoints and teacher feedback here.
