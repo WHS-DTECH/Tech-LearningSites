@@ -38,28 +38,48 @@ layout: layouts/base.njk
   </div>
 </section>
 
-<section class="page-shell subject-info-panel">
-  <div class="subject-info-copy">
-    <h2 class="section-title">Current updates</h2>
-    {% if lead %}
-      <p>{{ lead }}</p>
-    {% endif %}
-    <div class="content-body">
-      {{ content | safe }}
-    </div>
-  </div>
-
-  {% if quickLinks %}
-    <aside class="subject-side-panel">
-      <h2>Useful links</h2>
-      <div class="link-list">
-        {% for link in quickLinks %}
-          <a class="link-card" href="{{ link.url }}">
-            <strong>{{ link.label }}</strong>
-            <span>{{ link.description }}</span>
-          </a>
-        {% endfor %}
+{% if embeddedSection and embeddedSection.url %}
+  <section class="page-shell subject-embed-wrap">
+    <article class="subject-embed-card">
+      <h2 class="section-title">{{ embeddedSection.title or "Activities running" }}</h2>
+      {% if embeddedSection.description %}
+        <p class="subject-embed-note">{{ embeddedSection.description }}</p>
+      {% endif %}
+      <div class="subject-embed-frame">
+        <iframe
+          src="{{ embeddedSection.url }}"
+          title="{{ embeddedSection.title or 'Embedded activities' }}"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+          style="height: {{ embeddedSection.height or 960 }}px;"
+        ></iframe>
       </div>
-    </aside>
-  {% endif %}
-</section>
+    </article>
+  </section>
+{% else %}
+  <section class="page-shell subject-info-panel">
+    <div class="subject-info-copy">
+      <h2 class="section-title">Current updates</h2>
+      {% if lead %}
+        <p>{{ lead }}</p>
+      {% endif %}
+      <div class="content-body">
+        {{ content | safe }}
+      </div>
+    </div>
+
+    {% if quickLinks %}
+      <aside class="subject-side-panel">
+        <h2>Useful links</h2>
+        <div class="link-list">
+          {% for link in quickLinks %}
+            <a class="link-card" href="{{ link.url }}">
+              <strong>{{ link.label }}</strong>
+              <span>{{ link.description }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      </aside>
+    {% endif %}
+  </section>
+{% endif %}

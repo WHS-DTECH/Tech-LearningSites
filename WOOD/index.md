@@ -4,7 +4,11 @@ title: WOOD
 shortTitle: Technology Learning Area
 displayTitle: Woodwork & Furniture
 summary: Course pages for junior woodwork, middle school workshop pathways, and senior furniture projects.
-lead: Use this area for current notices, term overviews, and quick updates that families or students need to see first.
+embeddedSection:
+  title: Activities Running This Week
+  description: Live activity feed embedded from the TECH-HUB Workshop website.
+  url: "https://tech-wworkshop.onrender.com/"
+  height: 980
 schoolGroups:
   - title: Junior School
     subtitle: Introductory workshop learning
@@ -30,28 +34,5 @@ schoolGroups:
         url: "/WOOD/12FURN/"
       - label: 13FURN - Year 13 Furniture
         url: "/WOOD/13FURN/"
-quickLinks:
-  - label: Workshop safety
-    url: "#"
-    description: Replace with the page or document staff use for safety expectations.
-  - label: Project plans
-    url: "#"
-    description: Link to drawings, dimensions, or working plans for the current build.
-  - label: Process journal
-    url: "#"
-    description: Add the template or submission point students use to document progress.
 permalink: /WOOD/
 ---
-## Current build focus
-
-Add the active project details here, including the next practical step and what students should complete before moving on.
-
-## Safety reminders
-
-- List the workshop routines that matter this week.
-- Add tool-specific reminders when a class begins using new equipment.
-- Keep parent-facing notes simple and clear when extra preparation is needed.
-
-## Timeline and checkpoints
-
-Use this section for progress expectations, sign-off points, and assessment milestones.
