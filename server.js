@@ -414,7 +414,8 @@ async function handleAdminApi(request, response, requestUrl) {
       fileName: body.fileName,
       mimeType: driveFile.mimeType,
       fileBuffer: driveFile.fileBuffer,
-      updatedBy: body.updatedBy || "Google Drive sync"
+      updatedBy: body.updatedBy || "Google Drive sync",
+      activityDetail: `Google Drive: ${body.fileName}`
     });
 
     sendJson(response, 200, result);

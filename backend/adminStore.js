@@ -9,6 +9,13 @@ const LOCKED_LINK_LABELS = {
   first: "Health & Safety",
   last: "Practical Skills"
 };
+const SUBJECT_DEFAULT_LINK_LABELS = {
+  DTECH: ["Course overview", "Database", "Programming", "Web Design", "Process", "Usability"],
+  DVC: ["Course overview", "Design brief", "Drawing", "Rendering", "Presentation", "Portfolio"],
+  FOOD: ["Course overview", "Recipes", "Planning", "Nutrition", "Kitchen skills", "Evaluation"],
+  TEXTILES: ["Course overview", "Materials", "Construction", "Design ideas", "Portfolio", "Evaluation"],
+  WOOD: ["Course overview", "Tools", "Processes", "Project build", "Finishing", "Evaluation"]
+};
 
 const COURSE_SEED = [
   { subjectCode: "DTECH", courseCode: "JDTECH", courseName: "Junior Digital Tech" },
@@ -309,26 +316,21 @@ async function getCourseContentActivity(courseCode, limit = 12) {
 }
 
 function defaultCourseContent(courseCode) {
-  if (courseCode === "11TEXT") {
-    return {
-      assessments: [
-        "Replace with assessment 1.",
-        "Replace with assessment 2.",
-        "Replace with assessment 3."
-      ],
-      assessmentLinks: [
-        { label: "Health & Safety", url: "#" },
-        { label: "Assessment statement", url: "#" },
-        { label: "Workshop tools", url: "#" },
-        { label: "Project checklist", url: "#" },
-        { label: "Practical skills", url: "#" }
-      ]
-    };
-  }
+  const course = COURSE_SEED.find((entry) => entry.courseCode === courseCode);
+  const subjectCode = course?.subjectCode || "TEXTILES";
+  const defaultLabels = SUBJECT_DEFAULT_LINK_LABELS[subjectCode] || SUBJECT_DEFAULT_LINK_LABELS.TEXTILES;
 
   return {
-    assessments: [],
-    assessmentLinks: []
+    assessments: [
+      "Replace with assessment 1.",
+      "Replace with assessment 2.",
+      "Replace with assessment 3."
+    ],
+    assessmentLinks: [
+      { label: LOCKED_LINK_LABELS.first, url: "#" },
+      ...defaultLabels.map((label) => ({ label, url: "#" })),
+      { label: LOCKED_LINK_LABELS.last, url: "#" }
+    ]
   };
 }
 
@@ -478,7 +480,7 @@ async function saveCourseStatementPdf(payload) {
     courseCode: safeCode,
     activityType: "statement-upload",
     actorName,
-    detail: fileName
+    detail: payload.activityDetail || fileName
   });
   await syncCourseRequirementFromContent(safeCode, actorName);
 

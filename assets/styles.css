@@ -1296,6 +1296,10 @@ img {
   min-width: 220px;
 }
 
+#uploader-drive-match-hint {
+  font-weight: 700;
+}
+
 #uploader-drive-sync-button {
   background: linear-gradient(135deg, #f59e0b, #d97706);
   border: 1px solid rgba(251, 191, 36, 0.7);

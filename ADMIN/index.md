@@ -142,6 +142,7 @@ templateEngineOverride: njk
             <button id="uploader-drive-sync-button" type="button" class="button-secondary">Sync from Drive</button>
             <button id="uploader-drive-match-button" type="button" class="button-secondary">Sync matching PDF</button>
           </div>
+          <p id="uploader-drive-match-hint" class="admin-message"></p>
           <p id="uploader-drive-status" class="admin-message"></p>
         </div>
       </article>
@@ -192,6 +193,7 @@ templateEngineOverride: njk
   const uploaderDriveFileSelect = document.getElementById("uploader-drive-file-select");
   const uploaderDriveSyncButton = document.getElementById("uploader-drive-sync-button");
   const uploaderDriveMatchButton = document.getElementById("uploader-drive-match-button");
+  const uploaderDriveMatchHint = document.getElementById("uploader-drive-match-hint");
   const uploaderDriveStatus = document.getElementById("uploader-drive-status");
   const uploaderActorName = document.getElementById("uploader-actor-name");
   const uploaderLastUpdate = document.getElementById("uploader-last-update");
@@ -419,6 +421,7 @@ templateEngineOverride: njk
       uploaderDriveFileSelect.disabled = true;
       uploaderDriveSyncButton.disabled = true;
       uploaderDriveMatchButton.disabled = true;
+      setMessage(uploaderDriveMatchHint, "Best match: none available.");
       return;
     }
 
@@ -434,9 +437,9 @@ templateEngineOverride: njk
     uploaderDriveMatchButton.disabled = !match.isClearMatch;
 
     if (match.isClearMatch) {
-      setMessage(uploaderDriveStatus, `Matched Drive PDF: ${availableDriveFiles[match.bestIndex].fileName}`);
+      setMessage(uploaderDriveMatchHint, `Best match: ${availableDriveFiles[match.bestIndex].fileName}`);
     } else {
-      setMessage(uploaderDriveStatus, "No clear automatic Drive match for this course.");
+      setMessage(uploaderDriveMatchHint, "Best match: none yet for this course.");
     }
   }
 
@@ -469,8 +472,14 @@ templateEngineOverride: njk
     const items = activity.map((entry) => {
       const when = formatDateTime(entry.created_at) || "Unknown date";
       const who = escapeHtml(entry.actor_name || "Unknown staff");
-      const action = entry.activity_type === "statement-upload" ? "Uploaded statement PDF" : "Saved content";
-      const detail = entry.detail ? ` - ${escapeHtml(entry.detail)}` : "";
+      const isDriveSync = entry.activity_type === "statement-upload" && String(entry.detail || "").startsWith("Google Drive:");
+      const action = entry.activity_type === "statement-upload"
+        ? (isDriveSync ? "Synced statement PDF from Google Drive" : "Uploaded statement PDF")
+        : "Saved content";
+      const cleanDetail = isDriveSync
+        ? String(entry.detail || "").replace(/^Google Drive:\s*/i, "")
+        : entry.detail;
+      const detail = cleanDetail ? ` - ${escapeHtml(cleanDetail)}` : "";
       return `<li><strong>${who}</strong> ${action} on ${escapeHtml(when)}${detail}</li>`;
     });
 
