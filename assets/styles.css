@@ -1229,6 +1229,24 @@ img {
   margin-bottom: 0.35rem;
 }
 
+@media (max-width: 1200px) {
+  .admin-uploader-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .admin-uploader-grid > .admin-uploader-card:nth-child(1) {
+    grid-column: 1 / -1;
+  }
+
+  .admin-uploader-grid > .admin-uploader-card:nth-child(2) {
+    grid-column: 1;
+  }
+
+  .admin-uploader-grid > .admin-uploader-card:nth-child(3) {
+    grid-column: 2;
+  }
+}
+
 @media (max-width: 1100px) {
   .admin-summary-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
