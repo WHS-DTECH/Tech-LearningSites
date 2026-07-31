@@ -38,7 +38,46 @@ layout: layouts/base.njk
   </div>
 </section>
 
-{% if embeddedSection and embeddedSection.url %}
+{% if activitySection and activitySection.cards %}
+  <section class="page-shell subject-activity-wrap">
+    <article class="subject-activity-card">
+      <div class="subject-activity-head">
+        <div>
+          <h2 class="section-title">{{ activitySection.title or "Activities Running This Week" }}</h2>
+          {% if activitySection.description %}
+            <p class="subject-activity-note">{{ activitySection.description }}</p>
+          {% endif %}
+        </div>
+
+        {% if activitySection.linkUrl %}
+          <a class="subject-activity-link" href="{{ activitySection.linkUrl }}" target="_blank" rel="noopener noreferrer">
+            {{ activitySection.linkText or "Open in TECH-HUB" }}
+          </a>
+        {% endif %}
+      </div>
+
+      <div class="subject-activity-grid">
+        {% for card in activitySection.cards %}
+          <a class="subject-activity-item" href="{{ activitySection.linkUrl or card.url }}" target="_blank" rel="noopener noreferrer">
+            <div class="subject-activity-image-wrap">
+              {% if card.image %}
+                <img src="{{ card.image }}" alt="{{ card.title }}">
+              {% endif %}
+            </div>
+            <div class="subject-activity-copy">
+              {% if card.meta %}
+                <p class="subject-activity-meta">{{ card.meta }}</p>
+              {% endif %}
+              <h3>{{ card.title }}</h3>
+              <p>{{ card.summary }}</p>
+              <span class="subject-activity-open">Open in TECH-HUB</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+{% elseif embeddedSection and embeddedSection.url %}
   <section class="page-shell subject-embed-wrap">
     <article class="subject-embed-card">
       <h2 class="section-title">{{ embeddedSection.title or "Activities running" }}</h2>
