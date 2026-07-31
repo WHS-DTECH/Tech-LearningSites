@@ -956,9 +956,36 @@ img {
   margin: 0.8rem 0 1rem;
 }
 
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.admin-field-year {
+  width: 80px;
+}
+
+.admin-field-term {
+  width: 70px;
+}
+
+.admin-field-subject {
+  width: 110px;
+}
+
+.admin-field-status {
+  width: 170px;
+}
+
+.admin-field-action {
+  justify-content: flex-end;
+}
+
 .admin-inline-form label {
   font-size: 0.84rem;
   color: var(--muted);
+  line-height: 1;
 }
 
 .admin-inline-form input,

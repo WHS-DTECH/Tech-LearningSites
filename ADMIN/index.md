@@ -24,34 +24,44 @@ permalink: /ADMIN/
   </div>
 
   <form class="admin-inline-form" id="admin-filters">
-    <label for="filter-year">Year</label>
-    <input id="filter-year" type="number" min="2024" max="2100" step="1">
+    <div class="admin-field admin-field-year">
+      <label for="filter-year">Year</label>
+      <input id="filter-year" type="number" min="2024" max="2100" step="1">
+    </div>
 
-    <label for="filter-term">Term</label>
-    <select id="filter-term">
-      <option value="T1">T1</option>
-      <option value="T3">T3</option>
-    </select>
+    <div class="admin-field admin-field-term">
+      <label for="filter-term">Term</label>
+      <select id="filter-term">
+        <option value="T1">T1</option>
+        <option value="T3">T3</option>
+      </select>
+    </div>
 
-    <label for="filter-subject">Subject</label>
-    <select id="filter-subject">
-      <option value="">All</option>
-      <option value="DTECH">DTECH</option>
-      <option value="DVC">DVC</option>
-      <option value="FOOD">FOOD</option>
-      <option value="TEXTILES">TEXTILES</option>
-      <option value="WOOD">WOOD</option>
-    </select>
+    <div class="admin-field admin-field-subject">
+      <label for="filter-subject">Subject</label>
+      <select id="filter-subject">
+        <option value="">All</option>
+        <option value="DTECH">DTECH</option>
+        <option value="DVC">DVC</option>
+        <option value="FOOD">FOOD</option>
+        <option value="TEXTILES">TEXTILES</option>
+        <option value="WOOD">WOOD</option>
+      </select>
+    </div>
 
-    <label for="filter-status">Status</label>
-    <select id="filter-status">
-      <option value="">All</option>
-      <option value="red">Red (missing both)</option>
-      <option value="amber">Amber (part complete)</option>
-      <option value="green">Green (complete)</option>
-    </select>
+    <div class="admin-field admin-field-status">
+      <label for="filter-status">Status</label>
+      <select id="filter-status">
+        <option value="">All</option>
+        <option value="red">Red (missing both)</option>
+        <option value="amber">Amber (part complete)</option>
+        <option value="green">Green (complete)</option>
+      </select>
+    </div>
 
-    <button type="submit" class="button">Refresh</button>
+    <div class="admin-field admin-field-action">
+      <button type="submit" class="button">Refresh</button>
+    </div>
   </form>
 
   <div class="admin-summary-grid" id="admin-summary"></div>
