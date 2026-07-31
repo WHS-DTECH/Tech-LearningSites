@@ -9,6 +9,7 @@ const {
   getDashboard,
   getCourseStatus,
   updateCourseRequirement,
+  getCourseContentTargets,
   getCourseContent,
   upsertCourseContent,
   saveCourseStatementPdf,
@@ -287,6 +288,12 @@ async function handleAdminApi(request, response, requestUrl) {
 
   if (request.method === "GET" && pathname === "/api/admin/health") {
     sendJson(response, 200, { ok: true, db: "connected" });
+    return;
+  }
+
+  if (request.method === "GET" && pathname === "/api/admin/course-content-targets") {
+    const courses = await getCourseContentTargets();
+    sendJson(response, 200, { ok: true, courses });
     return;
   }
 

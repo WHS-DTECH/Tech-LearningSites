@@ -1108,6 +1108,18 @@ img {
   padding-top: 0.45rem;
 }
 
+.admin-uploader-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.admin-uploader-heading-row .admin-subhead {
+  margin: 0;
+  margin-right: 0.35rem;
+}
+
 .admin-subject-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));

@@ -721,12 +721,48 @@ async function updateCourseRequirement(payload) {
   };
 }
 
+async function getCourseContentTargets() {
+  const targetCodes = Array.from(COURSE_CONTENT_TARGETS);
+
+  if (!targetCodes.length) {
+    return [];
+  }
+
+  const result = await query(
+    `
+      SELECT c.course_code, c.course_name, c.subject_code
+      FROM admin_courses c
+      WHERE c.course_code = ANY($1::text[])
+      ORDER BY c.subject_code, c.course_code
+    `,
+    [targetCodes]
+  );
+
+  if (result.rows.length) {
+    return result.rows.map((row) => ({
+      courseCode: row.course_code,
+      courseName: row.course_name,
+      subjectCode: row.subject_code
+    }));
+  }
+
+  // Fallback to seeded course metadata if target rows are not present yet.
+  return COURSE_SEED
+    .filter((course) => COURSE_CONTENT_TARGETS.has(course.courseCode))
+    .map((course) => ({
+      courseCode: course.courseCode,
+      courseName: course.courseName,
+      subjectCode: course.subjectCode
+    }));
+}
+
 module.exports = {
   getPool,
   initAdminSchema,
   getDashboard,
   getCourseStatus,
   updateCourseRequirement,
+  getCourseContentTargets,
   getCourseContent,
   upsertCourseContent,
   saveCourseStatementPdf,

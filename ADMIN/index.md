@@ -98,8 +98,12 @@ templateEngineOverride: njk
   </section>
 
   <section id="admin-panel-uploader" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-uploader" hidden>
-    <h3 class="admin-subhead">11TEXT Uploader</h3>
-    <p class="admin-message">Use this uploader to update the 11TEXT course page content directly.</p>
+    <div class="admin-uploader-heading-row">
+      <h3 class="admin-subhead">Uploader</h3>
+      <label class="admin-field-label" for="uploader-course-select">Course</label>
+      <select id="uploader-course-select" class="admin-inline-select"></select>
+    </div>
+    <p class="admin-message">Use this uploader to update the selected course page content directly.</p>
 
     <div class="admin-uploader-grid">
       <article class="admin-uploader-card">
@@ -124,7 +128,7 @@ templateEngineOverride: njk
 
       <article class="admin-uploader-card">
         <h4>Area 3: Assessment Statement PDF</h4>
-        <p>Upload the latest PDF statement for 11TEXT.</p>
+        <p>Upload the latest PDF statement for <span id="uploader-course-label">11TEXT</span>.</p>
         <form id="uploader-pdf-form" class="admin-inline-form">
           <input id="uploader-statement-pdf" type="file" accept="application/pdf">
           <button type="submit" class="button-secondary">Upload PDF</button>
@@ -162,6 +166,8 @@ templateEngineOverride: njk
   const tabUploaderButton = document.getElementById("admin-tab-uploader");
   const panelCourse = document.getElementById("admin-panel-course");
   const panelUploader = document.getElementById("admin-panel-uploader");
+  const uploaderCourseSelect = document.getElementById("uploader-course-select");
+  const uploaderCourseLabel = document.getElementById("uploader-course-label");
   const uploaderAssessments = document.getElementById("uploader-assessments");
   const uploaderLinksWrap = document.getElementById("uploader-links");
   const uploaderSaveAssessments = document.getElementById("uploader-save-assessments");
@@ -177,7 +183,7 @@ templateEngineOverride: njk
   const uploaderLastUpdate = document.getElementById("uploader-last-update");
   const uploaderActivityLog = document.getElementById("uploader-activity-log");
 
-  const UPLOADER_COURSE_CODE = "11TEXT";
+  const DEFAULT_UPLOADER_COURSE_CODE = "11TEXT";
   const UPLOADER_LINK_ROWS = 5;
   const UPLOADER_ACTOR_STORAGE_KEY = "whsUploaderActorName";
   const LOCKED_BUTTON_LABELS = {
@@ -189,6 +195,7 @@ templateEngineOverride: njk
   const termInput = document.getElementById("filter-term");
   const subjectInput = document.getElementById("filter-subject");
   const statusInput = document.getElementById("filter-status");
+  let selectedUploaderCourseCode = DEFAULT_UPLOADER_COURSE_CODE;
 
   yearInput.value = new Date().getFullYear();
   termInput.value = "T1";
@@ -220,6 +227,36 @@ templateEngineOverride: njk
   function getUploaderActorName() {
     const name = String(uploaderActorName?.value || "").trim();
     return name || "Unknown staff";
+  }
+
+  function getSelectedUploaderCourseCode() {
+    return selectedUploaderCourseCode || DEFAULT_UPLOADER_COURSE_CODE;
+  }
+
+  function syncUploaderCourseLabel() {
+    uploaderCourseLabel.textContent = getSelectedUploaderCourseCode();
+  }
+
+  async function loadUploaderCourseOptions() {
+    const data = await apiRequest("/api/admin/course-content-targets");
+    const courses = Array.isArray(data.courses) ? data.courses : [];
+
+    if (!courses.length) {
+      uploaderCourseSelect.innerHTML = `<option value="${DEFAULT_UPLOADER_COURSE_CODE}">${DEFAULT_UPLOADER_COURSE_CODE}</option>`;
+      selectedUploaderCourseCode = DEFAULT_UPLOADER_COURSE_CODE;
+      uploaderCourseSelect.value = selectedUploaderCourseCode;
+      syncUploaderCourseLabel();
+      return;
+    }
+
+    uploaderCourseSelect.innerHTML = courses
+      .map((course) => `<option value="${escapeHtml(course.courseCode)}">${escapeHtml(course.courseCode)} - ${escapeHtml(course.courseName || "")}</option>`)
+      .join("");
+
+    const hasCurrent = courses.some((course) => course.courseCode === selectedUploaderCourseCode);
+    selectedUploaderCourseCode = hasCurrent ? selectedUploaderCourseCode : courses[0].courseCode;
+    uploaderCourseSelect.value = selectedUploaderCourseCode;
+    syncUploaderCourseLabel();
   }
 
   function renderUploaderActivity(activity) {
@@ -335,11 +372,12 @@ templateEngineOverride: njk
   }
 
   async function saveUploaderContentSelection({ includeAssessments, includeLinks }) {
-    const current = await apiRequest(`/api/admin/course-content/${UPLOADER_COURSE_CODE}`);
+    const courseCode = getSelectedUploaderCourseCode();
+    const current = await apiRequest(`/api/admin/course-content/${courseCode}`);
     const assessments = includeAssessments ? collectAssessments() : (current.assessments || []);
     const assessmentLinks = includeLinks ? collectUploaderLinks() : (current.assessmentLinks || []);
 
-    await apiRequest(`/api/admin/course-content/${UPLOADER_COURSE_CODE}`, {
+    await apiRequest(`/api/admin/course-content/${courseCode}`, {
       method: "POST",
       body: JSON.stringify({
         assessments,
@@ -350,6 +388,7 @@ templateEngineOverride: njk
   }
 
   async function uploadUploaderPdfIfSelected() {
+    const courseCode = getSelectedUploaderCourseCode();
     const file = uploaderPdfInput.files?.[0];
     if (!file) {
       return { uploaded: false };
@@ -359,7 +398,7 @@ templateEngineOverride: njk
     formData.append("statementPdf", file);
     formData.append("updatedBy", getUploaderActorName());
 
-    await apiRequest(`/api/admin/course-content/${UPLOADER_COURSE_CODE}/statement`, {
+    await apiRequest(`/api/admin/course-content/${courseCode}/statement`, {
       method: "POST",
       body: formData
     });
@@ -370,7 +409,8 @@ templateEngineOverride: njk
   }
 
   async function loadUploaderData() {
-    const data = await apiRequest(`/api/admin/course-content/${UPLOADER_COURSE_CODE}`);
+    const courseCode = getSelectedUploaderCourseCode();
+    const data = await apiRequest(`/api/admin/course-content/${courseCode}`);
 
     const assessmentsText = (data.assessments || []).join("\n");
     uploaderAssessments.value = assessmentsText;
@@ -544,6 +584,16 @@ templateEngineOverride: njk
   tabCourseButton.addEventListener("click", () => setActiveTab("course"));
   tabUploaderButton.addEventListener("click", () => setActiveTab("uploader"));
 
+  uploaderCourseSelect.addEventListener("change", async () => {
+    selectedUploaderCourseCode = uploaderCourseSelect.value || DEFAULT_UPLOADER_COURSE_CODE;
+    syncUploaderCourseLabel();
+    setMessage(uploaderAssessmentsStatus, "");
+    setMessage(uploaderLinksStatus, "");
+    setMessage(uploaderContentStatus, "");
+    setMessage(uploaderPdfStatus, "");
+    await loadUploaderData();
+  });
+
   filtersForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -649,7 +699,7 @@ templateEngineOverride: njk
       await loadUploaderData();
 
       const pdfMessage = uploadResult.uploaded ? " PDF uploaded too." : "";
-      setMessage(uploaderContentStatus, `All areas saved.${pdfMessage}`);
+      setMessage(uploaderContentStatus, `${getSelectedUploaderCourseCode()} saved.${pdfMessage}`);
       uploaderSaveContent.textContent = "Saved";
       setTimeout(() => {
         uploaderSaveContent.textContent = "Save All Areas";
@@ -704,6 +754,7 @@ templateEngineOverride: njk
     showDashboard();
     try {
       await loadDashboardData();
+      await loadUploaderCourseOptions();
       await loadUploaderData();
     } catch (error) {
       setMessage(coursesMessage, error.message, true);
