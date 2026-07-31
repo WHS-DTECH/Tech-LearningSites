@@ -1,21 +1,35 @@
 ---
-layout: layouts/program.njk
+layout: layouts/course.njk
 title: JTEXT | Textiles
-shortTitle: JTEXT
-displayTitle: JTEXT - Junior Textiles
-summary: Junior Textiles course page.
-lead: Add junior textiles project details, resources, and weekly notices here.
+shortTitle: Technology Learning Area
+titleLines:
+  - JTEXT
+  - Junior Textiles
+summary: JTEXT course page with assessments, resources, and project statements.
+lead: Keep this page current with weekly workshop tasks, safety expectations, and assessment checkpoints.
+hideContent: true
+assessments:
+  - code: Replace with assessment 1.
+  - code: Replace with assessment 2.
+  - code: Replace with assessment 3.
+assessmentLinks:
+  - label: Course overview
+    url: "#"
+  - label: Assessment statement
+    url: "#"
+  - label: Workshop tools
+    url: "#"
+  - label: Project checklist
+    url: "#"
+  - label: Practical skills
+    url: "#"
+assessmentGroup:
+  start: 2
+  end: 4
+  ariaLabel: Assessment-related links
+statement:
+  title: Assessment statement
+  open: true
+  downloadUrl: "#"
 permalink: /Textiles/JTEXT/
 ---
-## Current project
-
-Add the current junior making project here.
-
-## Materials and preparation
-
-- Add fabric, tools, and equipment notes.
-- Include class routines or storage expectations.
-
-## Assessment and feedback
-
-Keep checkpoints and teacher feedback here.

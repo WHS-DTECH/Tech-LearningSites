@@ -1,21 +1,35 @@
 ---
-layout: layouts/program.njk
-title: MTEXT Semester 1 | Textiles
-shortTitle: MTEXT S1
-displayTitle: MTEXT - Semester 1
-summary: Middle Textiles Semester 1 course page.
-lead: Add semester 1 textiles projects, resources, and weekly notices here.
+layout: layouts/course.njk
+title: MTEXT-S1 | Textiles
+shortTitle: Technology Learning Area
+titleLines:
+  - MTEXT-S1
+  - Semester 1
+summary: MTEXT Semester 1 course page with assessments, resources, and project statements.
+lead: Keep this page current with weekly workshop tasks, safety expectations, and assessment checkpoints.
+hideContent: true
+assessments:
+  - code: Replace with assessment 1.
+  - code: Replace with assessment 2.
+  - code: Replace with assessment 3.
+assessmentLinks:
+  - label: Course overview
+    url: "#"
+  - label: Assessment statement
+    url: "#"
+  - label: Workshop tools
+    url: "#"
+  - label: Project checklist
+    url: "#"
+  - label: Practical skills
+    url: "#"
+assessmentGroup:
+  start: 2
+  end: 4
+  ariaLabel: Assessment-related links
+statement:
+  title: Assessment statement
+  open: true
+  downloadUrl: "#"
 permalink: /Textiles/MTEXT-S1/
 ---
-## Current project
-
-Add the current semester 1 textiles project here.
-
-## Materials and preparation
-
-- Add fabric, tools, and equipment notes.
-- Include class routines or storage expectations.
-
-## Assessment and feedback
-
-Keep checkpoints and teacher feedback here.

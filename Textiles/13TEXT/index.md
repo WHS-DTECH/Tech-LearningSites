@@ -1,21 +1,35 @@
 ---
-layout: layouts/program.njk
+layout: layouts/course.njk
 title: 13TEXT | Textiles
-shortTitle: 13TEXT
-displayTitle: 13TEXT - Year 13 Textiles
-summary: Year 13 Textiles course page.
-lead: Add Year 13 textiles projects, resources, and weekly notices here.
+shortTitle: Technology Learning Area
+titleLines:
+  - 13TEXT
+  - Year 13 Textiles
+summary: 13TEXT course page with assessments, resources, and project statements.
+lead: Keep this page current with weekly workshop tasks, safety expectations, and assessment checkpoints.
+hideContent: true
+assessments:
+  - code: Replace with assessment 1.
+  - code: Replace with assessment 2.
+  - code: Replace with assessment 3.
+assessmentLinks:
+  - label: Course overview
+    url: "#"
+  - label: Assessment statement
+    url: "#"
+  - label: Workshop tools
+    url: "#"
+  - label: Project checklist
+    url: "#"
+  - label: Practical skills
+    url: "#"
+assessmentGroup:
+  start: 2
+  end: 4
+  ariaLabel: Assessment-related links
+statement:
+  title: Assessment statement
+  open: true
+  downloadUrl: "#"
 permalink: /Textiles/13TEXT/
 ---
-## Current project
-
-Add the current Year 13 textiles project here.
-
-## Materials and preparation
-
-- Add fabric, tools, and equipment notes.
-- Include class routines or storage expectations.
-
-## Assessment and feedback
-
-Keep checkpoints and teacher feedback here.
