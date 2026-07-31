@@ -1132,6 +1132,24 @@ img {
   background: #f4f1fa;
 }
 
+#admin-panel-course .admin-inline-select.admin-status-select {
+  font-weight: 700;
+}
+
+#admin-panel-course .admin-inline-select.admin-status-select.is-not-started {
+  color: #23163b;
+}
+
+#admin-panel-course .admin-inline-select.admin-status-select.is-incomplete {
+  color: #b91c1c;
+  font-weight: 800;
+}
+
+#admin-panel-course .admin-inline-select.admin-status-select.is-complete {
+  color: #166534;
+  font-weight: 800;
+}
+
 .admin-tab-panel {
   padding-top: 0.45rem;
 }

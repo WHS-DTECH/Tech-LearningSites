@@ -207,8 +207,8 @@ templateEngineOverride: njk
   };
   const STATUS_OPTIONS = [
     { value: "not_started", label: "--" },
-    { value: "incomplete", label: "&#10007;" },
-    { value: "complete", label: "&#10003;" }
+    { value: "incomplete", label: "&#10006;" },
+    { value: "complete", label: "&#10004;" }
   ];
 
   const yearInput = document.getElementById("filter-year");
@@ -725,7 +725,17 @@ templateEngineOverride: njk
     const options = STATUS_OPTIONS
       .map((option) => `<option value="${option.value}" ${selected === option.value ? "selected" : ""}>${option.label}</option>`)
       .join("");
-    return `<select class="admin-inline-select" data-field="${fieldName}">${options}</select>`;
+    return `<select class="admin-inline-select admin-status-select" data-field="${fieldName}" data-status-select="true">${options}</select>`;
+  }
+
+  function applyStatusSelectStyle(select) {
+    if (!select || !select.matches("select[data-status-select='true']")) {
+      return;
+    }
+
+    const value = normalizeStatusValue(select.value);
+    select.classList.remove("is-not-started", "is-incomplete", "is-complete");
+    select.classList.add(`is-${value.replace("_", "-")}`);
   }
 
   function renderCourses(courses) {
@@ -756,6 +766,10 @@ templateEngineOverride: njk
         `;
       })
       .join("");
+
+    coursesTableBody
+      .querySelectorAll("select[data-status-select='true']")
+      .forEach((select) => applyStatusSelectStyle(select));
   }
 
   async function loadDashboardData() {
@@ -883,6 +897,15 @@ templateEngineOverride: njk
     } finally {
       button.disabled = false;
     }
+  });
+
+  coursesTableBody.addEventListener("change", (event) => {
+    const select = event.target.closest("select[data-status-select='true']");
+    if (!select) {
+      return;
+    }
+
+    applyStatusSelectStyle(select);
   });
 
   uploaderSaveAssessments.addEventListener("click", async () => {
