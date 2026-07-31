@@ -783,6 +783,20 @@ async function getDashboard({ year, term }) {
     `
       SELECT
         COUNT(*)::INT AS total_courses,
+        COUNT(*) FILTER (
+          WHERE r.assessments_status = 'complete'
+            AND r.pdf_statement_status = 'complete'
+            AND r.health_safety_status = 'complete'
+            AND r.practical_skills_status = 'complete'
+            AND r.topic_buttons_status = 'complete'
+        )::INT AS courses_complete,
+        COUNT(*) FILTER (
+          WHERE r.assessments_status <> 'complete'
+             OR r.pdf_statement_status <> 'complete'
+             OR r.health_safety_status <> 'complete'
+             OR r.practical_skills_status <> 'complete'
+             OR r.topic_buttons_status <> 'complete'
+        )::INT AS courses_incomplete,
         COUNT(*) FILTER (WHERE r.assessments_status = 'complete')::INT AS assessments_complete,
         COUNT(*) FILTER (WHERE r.pdf_statement_status = 'complete')::INT AS pdf_statement_complete,
         COUNT(*) FILTER (

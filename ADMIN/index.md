@@ -67,9 +67,6 @@ templateEngineOverride: njk
 
   <div class="admin-summary-grid" id="admin-summary"></div>
 
-  <h3 class="admin-subhead">By Subject</h3>
-  <div class="admin-subject-grid" id="admin-subjects"></div>
-
   <div class="admin-tab-control" role="tablist" aria-label="Admin content pages">
     <button id="admin-tab-course" class="admin-tab-button is-active" role="tab" type="button" aria-selected="true" aria-controls="admin-panel-course">Course Status</button>
     <button id="admin-tab-uploader" class="admin-tab-button" role="tab" type="button" aria-selected="false" aria-controls="admin-panel-uploader">Uploader</button>
@@ -174,7 +171,6 @@ templateEngineOverride: njk
   const loginMessage = document.getElementById("admin-login-message");
   const coursesMessage = document.getElementById("admin-courses-message");
   const summaryEl = document.getElementById("admin-summary");
-  const subjectsEl = document.getElementById("admin-subjects");
   const coursesTableBody = document.querySelector("#admin-courses-table tbody");
   const tabCourseButton = document.getElementById("admin-tab-course");
   const tabUploaderButton = document.getElementById("admin-tab-uploader");
@@ -694,11 +690,8 @@ templateEngineOverride: njk
   function renderSummary(summary) {
     const cards = [
       { label: "Total courses", value: summary.total_courses },
-      { label: "Fully complete", value: summary.fully_complete },
-      { label: "Assessments complete", value: summary.assessments_complete },
-      { label: "PDF Statement complete", value: summary.pdf_statement_complete },
-      { label: "Missing assessments", value: summary.missing_assessments },
-      { label: "Missing PDF Statement", value: summary.missing_pdf_statement }
+      { label: "Courses complete", value: summary.courses_complete },
+      { label: "Courses incomplete", value: summary.courses_incomplete }
     ];
 
     summaryEl.innerHTML = cards
@@ -706,19 +699,6 @@ templateEngineOverride: njk
         <article class="admin-kpi">
           <p>${escapeHtml(card.label)}</p>
           <strong>${escapeHtml(card.value)}</strong>
-        </article>
-      `)
-      .join("");
-  }
-
-  function renderSubjects(subjects) {
-    subjectsEl.innerHTML = subjects
-      .map((subject) => `
-        <article class="admin-subject-card">
-          <h4>${escapeHtml(subject.code)}</h4>
-          <p>${escapeHtml(subject.name)}</p>
-          <p><strong>${escapeHtml(subject.fully_complete)}</strong> / ${escapeHtml(subject.total_courses)} complete</p>
-          <p>${escapeHtml(subject.still_required)} still required</p>
         </article>
       `)
       .join("");
@@ -798,7 +778,6 @@ templateEngineOverride: njk
     const courses = await apiRequest(courseUrl.toString());
 
     renderSummary(dashboard.summary);
-    renderSubjects(dashboard.subjects);
     renderCourses(courses.courses);
   }
 
