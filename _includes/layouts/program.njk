@@ -72,7 +72,7 @@ layout: layouts/base.njk
               </div>
             </article>
           {% else %}
-            <a class="subject-activity-item" href="{{ activitySection.linkUrl or card.url }}" target="_blank" rel="noopener noreferrer">
+            <a class="subject-activity-item" href="{{ card.url or activitySection.linkUrl }}" target="_blank" rel="noopener noreferrer">
               <div class="subject-activity-image-wrap">
                 {% if card.image %}
                   <img src="{{ card.image }}" alt="{{ card.title }}">

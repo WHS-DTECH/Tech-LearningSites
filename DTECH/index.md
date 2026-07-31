@@ -14,72 +14,95 @@ activitySection:
     - title: Commenting and Debugging Training
       summary: Current activity
       meta: Activities | 1 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=36"
     - title: Animation
       summary: Assessment task
       meta: Assessment Tasks | 8 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=53"
     - title: Client Projects
       summary: Assessment task
       meta: Assessment Tasks | 8 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=49"
     - title: Make a Program
       summary: Assessment task
       meta: Assessment Tasks | 8 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=57"
     - title: Making a Website
       summary: Assessment task
       meta: Assessment Tasks | 8 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=54"
     - title: Making Film Show
       summary: Assessment task
       meta: Assessment Tasks | 8 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=47"
     - title: Making Interview Show
       summary: Assessment task
       meta: Assessment Tasks | 8 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=48"
     - title: Making Music
       summary: Assessment task
       meta: Assessment Tasks | 8 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=35"
     - title: WHS Monopoly Games
       summary: Assessment task
       meta: Assessment Tasks | 8 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=31"
     - title: Bus Controller App
       summary: Project
       meta: Projects | 14 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=28"
     - title: Change Class or Subject App
       summary: Project
       meta: Projects | 14 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=45"
     - title: Chromebook Register App
       summary: Project
       meta: Projects | 14 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=27"
     - title: Department Resources Catalogue
       summary: Project
       meta: Projects | 14 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=30"
     - title: DTECH HUB
       summary: Project
       meta: Projects | 14 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=55"
     - title: Guidance Counsellor App
       summary: Project
       meta: Projects | 14 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=26"
     - title: Inter-Hapu Sports Events App
       summary: Project
       meta: Projects | 14 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=32"
     - title: International Student App
       summary: Project
       meta: Projects | 14 running
-    - title: Online School Library Shortcut App
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=33"
+    - title: Online Science Biology Disections App
       summary: Project
       meta: Projects | 14 running
-    - title: RaumatiSci Room App
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=37"
+    - title: Restorative Room App
       summary: Project
       meta: Projects | 14 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=46"
     - title: "STEAM: Space"
       summary: Project
       meta: Projects | 14 running
-    - title: Staff from Mobile
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=56"
+    - title: Stills from Movies
       summary: Project
       meta: Projects | 14 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=29"
     - title: Teacher Aide App
       summary: Project
       meta: Projects | 14 running
-    - title: WHS News Box
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=24"
+    - title: WHS Money Box
       summary: Project
       meta: Projects | 14 running
+      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=52"
 schoolGroups:
   - title: Junior School
     subtitle: Core digital learning and introductory coding
