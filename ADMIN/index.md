@@ -2,6 +2,7 @@
 layout: layouts/base.njk
 title: Admin
 permalink: /ADMIN/
+templateEngineOverride: njk
 ---
 <section class="page-shell section admin-login" id="admin-login">
   <h2 class="section-title">Admin Login</h2>
