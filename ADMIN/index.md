@@ -134,6 +134,15 @@ templateEngineOverride: njk
           <button type="submit" class="button-secondary">Upload PDF</button>
         </form>
         <p id="uploader-pdf-status" class="admin-message"></p>
+        <div class="admin-uploader-drive-sync">
+          <h5>Google Drive Sync</h5>
+          <p>Import a PDF from the shared Google Drive folder into this course statement slot.</p>
+          <div class="admin-uploader-drive-controls">
+            <select id="uploader-drive-file-select" class="admin-inline-select"></select>
+            <button id="uploader-drive-sync-button" type="button" class="button-secondary">Sync from Drive</button>
+          </div>
+          <p id="uploader-drive-status" class="admin-message"></p>
+        </div>
       </article>
     </div>
 
@@ -179,6 +188,9 @@ templateEngineOverride: njk
   const uploaderPdfForm = document.getElementById("uploader-pdf-form");
   const uploaderPdfInput = document.getElementById("uploader-statement-pdf");
   const uploaderPdfStatus = document.getElementById("uploader-pdf-status");
+  const uploaderDriveFileSelect = document.getElementById("uploader-drive-file-select");
+  const uploaderDriveSyncButton = document.getElementById("uploader-drive-sync-button");
+  const uploaderDriveStatus = document.getElementById("uploader-drive-status");
   const uploaderActorName = document.getElementById("uploader-actor-name");
   const uploaderLastUpdate = document.getElementById("uploader-last-update");
   const uploaderActivityLog = document.getElementById("uploader-activity-log");
@@ -196,6 +208,7 @@ templateEngineOverride: njk
   const subjectInput = document.getElementById("filter-subject");
   const statusInput = document.getElementById("filter-status");
   let selectedUploaderCourseCode = DEFAULT_UPLOADER_COURSE_CODE;
+  let availableDriveFiles = [];
 
   yearInput.value = new Date().getFullYear();
   termInput.value = "T1";
@@ -293,6 +306,65 @@ templateEngineOverride: njk
     selectedUploaderCourseCode = hasCurrent ? selectedUploaderCourseCode : courses[0].courseCode;
     uploaderCourseSelect.value = selectedUploaderCourseCode;
     syncUploaderCourseLabel();
+  }
+
+  function scoreDriveFileForCourse(fileName, courseCode) {
+    const safeName = String(fileName || "").toUpperCase();
+    const safeCourseCode = String(courseCode || "").toUpperCase();
+    if (!safeName || !safeCourseCode) {
+      return -1;
+    }
+
+    if (safeName.includes(safeCourseCode)) {
+      return 3;
+    }
+
+    const coarseCode = safeCourseCode.replace(/[^A-Z0-9]/g, "");
+    const coarseName = safeName.replace(/[^A-Z0-9]/g, "");
+    if (coarseName.includes(coarseCode)) {
+      return 2;
+    }
+
+    return -1;
+  }
+
+  function pickBestDriveFileForCourse(courseCode) {
+    let bestIndex = 0;
+    let bestScore = -1;
+
+    availableDriveFiles.forEach((file, index) => {
+      const score = scoreDriveFileForCourse(file.fileName, courseCode);
+      if (score > bestScore) {
+        bestScore = score;
+        bestIndex = index;
+      }
+    });
+
+    return bestIndex;
+  }
+
+  function renderDriveFileOptions() {
+    if (!availableDriveFiles.length) {
+      uploaderDriveFileSelect.innerHTML = "<option value=''>No Drive PDFs found</option>";
+      uploaderDriveFileSelect.disabled = true;
+      uploaderDriveSyncButton.disabled = true;
+      return;
+    }
+
+    uploaderDriveFileSelect.innerHTML = availableDriveFiles
+      .map((file, index) => `<option value="${index}">${escapeHtml(file.fileName)}</option>`)
+      .join("");
+
+    const preferredIndex = pickBestDriveFileForCourse(getSelectedUploaderCourseCode());
+    uploaderDriveFileSelect.value = String(preferredIndex);
+    uploaderDriveFileSelect.disabled = false;
+    uploaderDriveSyncButton.disabled = false;
+  }
+
+  async function loadDriveFileOptions() {
+    const data = await apiRequest("/api/admin/google-drive-pdfs");
+    availableDriveFiles = Array.isArray(data.files) ? data.files : [];
+    renderDriveFileOptions();
   }
 
   function renderUploaderActivity(activity) {
@@ -650,6 +722,8 @@ templateEngineOverride: njk
     setMessage(uploaderLinksStatus, "");
     setMessage(uploaderContentStatus, "");
     setMessage(uploaderPdfStatus, "");
+    setMessage(uploaderDriveStatus, "");
+    renderDriveFileOptions();
     await loadUploaderData();
   });
 
@@ -804,6 +878,44 @@ templateEngineOverride: njk
     }
   });
 
+  uploaderDriveSyncButton.addEventListener("click", async () => {
+    const selectedIndex = Number.parseInt(uploaderDriveFileSelect.value, 10);
+    const selectedFile = availableDriveFiles[selectedIndex];
+
+    if (!selectedFile) {
+      setMessage(uploaderDriveStatus, "Select a Google Drive PDF first.", true);
+      return;
+    }
+
+    uploaderDriveSyncButton.disabled = true;
+    uploaderDriveSyncButton.textContent = "Syncing...";
+    setMessage(uploaderDriveStatus, "");
+
+    try {
+      await apiRequest(`/api/admin/course-content/${getSelectedUploaderCourseCode()}/statement/google-drive`, {
+        method: "POST",
+        body: JSON.stringify({
+          fileId: selectedFile.fileId,
+          fileName: selectedFile.fileName,
+          updatedBy: getUploaderActorName()
+        })
+      });
+
+      await loadUploaderData();
+      await refreshCourseStatusAfterUploaderUpdate();
+      setMessage(uploaderDriveStatus, `Synced ${selectedFile.fileName} from Google Drive.`);
+      uploaderDriveSyncButton.textContent = "Synced";
+      setTimeout(() => {
+        uploaderDriveSyncButton.textContent = "Sync from Drive";
+      }, 1200);
+    } catch (error) {
+      setMessage(uploaderDriveStatus, error.message, true);
+      uploaderDriveSyncButton.textContent = "Sync from Drive";
+    } finally {
+      uploaderDriveSyncButton.disabled = false;
+    }
+  });
+
   (async () => {
     setActiveTab("course");
 
@@ -818,6 +930,7 @@ templateEngineOverride: njk
     try {
       await loadDashboardData();
       await loadUploaderCourseOptions();
+      await loadDriveFileOptions();
       await loadUploaderData();
     } catch (error) {
       setMessage(coursesMessage, error.message, true);

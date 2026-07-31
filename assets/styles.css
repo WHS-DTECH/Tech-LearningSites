@@ -1274,6 +1274,28 @@ img {
   flex-wrap: wrap;
 }
 
+.admin-uploader-drive-sync {
+  margin-top: 0.85rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(190, 156, 255, 0.2);
+}
+
+.admin-uploader-drive-sync h5 {
+  margin: 0 0 0.35rem;
+  font-size: 0.9rem;
+}
+
+.admin-uploader-drive-controls {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.admin-uploader-drive-controls .admin-inline-select {
+  min-width: 220px;
+}
+
 #uploader-save-assessments {
   background: linear-gradient(135deg, #14b8a6, #0f766e);
   border: 1px solid rgba(16, 185, 129, 0.6);

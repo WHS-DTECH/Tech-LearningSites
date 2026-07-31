@@ -20,6 +20,7 @@ const port = process.env.PORT || 3000;
 const distDir = path.join(__dirname, "dist");
 const ADMIN_COOKIE_NAME = "whs_admin_session";
 const ADMIN_SESSION_TTL_SECONDS = 60 * 60 * 8;
+const DEFAULT_GOOGLE_DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1sLelrgqZRq1jKxH_AJ_21jpNjH8FSLLF?usp=drive_link";
 
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
@@ -82,6 +83,72 @@ function sendBinary(response, statusCode, fileBuffer, mimeType, extraHeaders = {
     ...extraHeaders
   });
   response.end(fileBuffer);
+}
+
+function getGoogleDriveFolderUrl() {
+  return process.env.GOOGLE_DRIVE_SYNC_FOLDER_URL || DEFAULT_GOOGLE_DRIVE_FOLDER_URL;
+}
+
+async function fetchPublicDriveFolderPdfs() {
+  const response = await fetch(getGoogleDriveFolderUrl(), {
+    headers: {
+      "User-Agent": "WHS-LearningSite/1.0"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Google Drive folder request failed with status ${response.status}`);
+  }
+
+  const html = await response.text();
+  const fileMatches = [...html.matchAll(/data-id="([^"]+)"[^>]*data-tooltip="([^"]+\.pdf)\s+PDF"/gi)];
+  const seenIds = new Set();
+  const files = [];
+
+  for (const match of fileMatches) {
+    const fileId = match[1];
+    const fileName = match[2].trim();
+    if (!fileId || seenIds.has(fileId)) {
+      continue;
+    }
+
+    seenIds.add(fileId);
+    files.push({
+      fileId,
+      fileName,
+      downloadUrl: `https://drive.google.com/uc?export=download&id=${fileId}`
+    });
+  }
+
+  const folderNameMatch = html.match(/Additional Links[\s\S]*?<a[^>]*>([^<]+)<\/a>/i);
+  const folderName = folderNameMatch ? folderNameMatch[1].trim() : "Google Drive PDFs";
+
+  return { folderName, files };
+}
+
+async function fetchPublicDrivePdfFile(fileId) {
+  const response = await fetch(`https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`, {
+    headers: {
+      "User-Agent": "WHS-LearningSite/1.0"
+    },
+    redirect: "follow"
+  });
+
+  if (!response.ok) {
+    throw new Error(`Google Drive PDF download failed with status ${response.status}`);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  const fileBuffer = Buffer.from(arrayBuffer);
+
+  if (!fileBuffer.length) {
+    throw new Error("Downloaded Google Drive file is empty");
+  }
+
+  return {
+    fileBuffer,
+    mimeType: response.headers.get("content-type") || "application/pdf"
+  };
 }
 
 function parseCookies(request) {
@@ -297,6 +364,12 @@ async function handleAdminApi(request, response, requestUrl) {
     return;
   }
 
+  if (request.method === "GET" && pathname === "/api/admin/google-drive-pdfs") {
+    const data = await fetchPublicDriveFolderPdfs();
+    sendJson(response, 200, { ok: true, ...data });
+    return;
+  }
+
   if (request.method === "GET" && pathname.startsWith("/api/admin/course-content/")) {
     const courseCode = pathname.replace("/api/admin/course-content/", "").split("/")[0];
     const content = await getCourseContent(courseCode);
@@ -321,6 +394,27 @@ async function handleAdminApi(request, response, requestUrl) {
       mimeType: file.mimetype,
       fileBuffer,
       updatedBy: uploaderNameRaw || "ADMIN uploader"
+    });
+
+    sendJson(response, 200, result);
+    return;
+  }
+
+  if (request.method === "POST" && pathname.startsWith("/api/admin/course-content/") && pathname.endsWith("/statement/google-drive")) {
+    const courseCode = pathname.replace("/api/admin/course-content/", "").replace("/statement/google-drive", "");
+    const body = await readJsonBody(request);
+
+    if (!body.fileId || !body.fileName) {
+      throw new Error("fileId and fileName are required");
+    }
+
+    const driveFile = await fetchPublicDrivePdfFile(body.fileId);
+    const result = await saveCourseStatementPdf({
+      courseCode,
+      fileName: body.fileName,
+      mimeType: driveFile.mimeType,
+      fileBuffer: driveFile.fileBuffer,
+      updatedBy: body.updatedBy || "Google Drive sync"
     });
 
     sendJson(response, 200, result);
