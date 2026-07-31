@@ -56,6 +56,7 @@ layout: layouts/base.njk
           <a
             class="course-chip{% if loop.index >= assessmentGroup.start and loop.index <= assessmentGroup.end %} course-chip-assessment{% endif %}"
             href="{{ link.url }}"
+            {% if link.newTab %}target="_blank" rel="noopener noreferrer"{% endif %}
           >
             {{ link.label }}
           </a>
@@ -66,7 +67,7 @@ layout: layouts/base.njk
         {% endfor %}
       {% else %}
         {% for link in assessmentLinks %}
-          <a class="course-chip" href="{{ link.url }}">{{ link.label }}</a>
+          <a class="course-chip" href="{{ link.url }}" {% if link.newTab %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ link.label }}</a>
         {% endfor %}
       {% endif %}
     </nav>
@@ -98,52 +99,6 @@ layout: layouts/base.njk
       {% endif %}
     </div>
   </details>
-
-  {% if postStatementEmbed and postStatementEmbed.url %}
-    <section class="course-post-embed">
-      {% if postStatementEmbed.embed and not postStatementEmbed.compact %}
-        <div class="course-post-embed-head">
-          <h2 class="section-title">{{ postStatementEmbed.title or "Activities Running This Week" }}</h2>
-          {% if postStatementEmbed.linkUrl %}
-            <a class="course-post-embed-link" href="{{ postStatementEmbed.linkUrl }}" target="_blank" rel="noopener noreferrer">
-              {{ postStatementEmbed.linkText or "Open in new tab" }}
-            </a>
-          {% endif %}
-        </div>
-
-        {% if postStatementEmbed.note %}
-          <p class="course-post-embed-note">{{ postStatementEmbed.note }}</p>
-        {% endif %}
-      {% else %}
-        <div class="course-post-link-card">
-          <div>
-            <h2 class="section-title">{{ postStatementEmbed.title or "Middle School Woodwork" }}</h2>
-            {% if postStatementEmbed.note %}
-              <p class="course-post-embed-note">{{ postStatementEmbed.note }}</p>
-            {% endif %}
-          </div>
-
-          {% if postStatementEmbed.linkUrl %}
-            <a class="course-post-embed-link" href="{{ postStatementEmbed.linkUrl }}" target="_blank" rel="noopener noreferrer">
-              {{ postStatementEmbed.linkText or "Open in new tab" }}
-            </a>
-          {% endif %}
-        </div>
-      {% endif %}
-
-      {% if postStatementEmbed.embed %}
-        <div class="course-post-embed-frame">
-          <iframe
-            src="{{ postStatementEmbed.url }}"
-            title="{{ postStatementEmbed.title or 'Embedded site' }}"
-            loading="lazy"
-            referrerpolicy="no-referrer"
-            style="height: {{ postStatementEmbed.height or 1400 }}px;"
-          ></iframe>
-        </div>
-      {% endif %}
-    </section>
-  {% endif %}
 
   {% if not hideContent %}
     <div class="course-body">

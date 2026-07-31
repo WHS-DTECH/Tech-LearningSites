@@ -14,15 +14,20 @@ assessments:
   - code: Safely and accurately use basic hand tools to cut, shape, and join wood.
 assessmentLinks:
   - label: Health & Safety
-    url: "#"
+    url: "https://sites.google.com/westlandhigh.school.nz/hardmaterialswhswebsite/hard-materials-wood/middle-woodwork"
+    newTab: true
   - label: Woodwork Principles
-    url: "#"
+    url: "https://sites.google.com/westlandhigh.school.nz/hardmaterialswhswebsite/hard-materials-wood/middle-woodwork"
+    newTab: true
   - label: Wordwork Tools
-    url: "#"
+    url: "https://sites.google.com/westlandhigh.school.nz/hardmaterialswhswebsite/hard-materials-wood/middle-woodwork"
+    newTab: true
   - label: Woodwork Project
-    url: "#"
+    url: "https://sites.google.com/westlandhigh.school.nz/hardmaterialswhswebsite/hard-materials-wood/middle-woodwork"
+    newTab: true
   - label: Practical Skills
-    url: "#"
+    url: "https://sites.google.com/westlandhigh.school.nz/hardmaterialswhswebsite/hard-materials-wood/middle-woodwork"
+    newTab: true
 assessmentGroup:
   start: 2
   end: 4
@@ -31,13 +36,5 @@ statement:
   title: Assessment statement
   open: true
   embedUrl: "/WOOD/MWOOD-S2/Course%20Outline%20%26%20Assessment%20Statements/MWOOD-S2.pdf"
-postStatementEmbed:
-  title: Middle School Woodwork
-  embed: false
-  compact: true
-  url: "https://sites.google.com/westlandhigh.school.nz/hardmaterialswhswebsite/hard-materials-wood/middle-woodwork"
-  linkText: Open Google Site in new tab
-  linkUrl: "https://sites.google.com/westlandhigh.school.nz/hardmaterialswhswebsite/hard-materials-wood/middle-woodwork"
-  note: Open the Google Site in a new tab to view the full page details.
 permalink: /WOOD/MWOOD-S2/
 ---
