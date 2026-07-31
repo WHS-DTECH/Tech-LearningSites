@@ -349,7 +349,7 @@ function evaluateTopicButtonsStatus(assessments, assessmentLinks) {
   return "incomplete";
 }
 
-async function syncCourseRequirementFromContent(courseCode, updatedBy) {
+async function syncCourseRequirementFromContent(courseCode, updatedBy, schoolYear) {
   const safeCode = normalizeCourseCode(courseCode);
   if (!safeCode) {
     return;
@@ -361,8 +361,8 @@ async function syncCourseRequirementFromContent(courseCode, updatedBy) {
   const healthSafetyStatus = evaluateHealthSafetyStatus(content.assessmentLinks);
   const practicalSkillsStatus = evaluatePracticalSkillsStatus(content.assessmentLinks);
   const topicButtonsStatus = evaluateTopicButtonsStatus(content.assessments, content.assessmentLinks);
-  const safeYear = new Date().getUTCFullYear();
-  const actorName = normalizeActorName(updatedBy);
+  const safeYear = Number.isInteger(schoolYear) ? schoolYear : new Date().getUTCFullYear();
+  const actorName = updatedBy ? normalizeActorName(updatedBy) : null;
 
   await seedDefaultTermRequirements(safeYear);
   await query(
@@ -403,7 +403,7 @@ async function syncCourseRequirementFromContent(courseCode, updatedBy) {
             WHEN $3 = 'complete' AND r.statement_status <> 'complete' THEN NOW()
             ELSE r.statement_updated_at
           END,
-          updated_by = $7
+          updated_by = COALESCE($7, r.updated_by)
       FROM admin_courses c
       WHERE r.course_id = c.id
         AND c.course_code = $1
@@ -421,6 +421,14 @@ async function syncCourseRequirementFromContent(courseCode, updatedBy) {
       safeYear
     ]
   );
+}
+
+async function syncAllCourseRequirementsFromContent(schoolYear) {
+  const targetCodes = Array.from(COURSE_CONTENT_TARGETS);
+
+  for (const courseCode of targetCodes) {
+    await syncCourseRequirementFromContent(courseCode, null, schoolYear);
+  }
 }
 
 async function recordCourseContentActivity({ courseCode, activityType, actorName, detail }) {
@@ -778,6 +786,7 @@ async function getDashboard({ year, term }) {
   const safeTerm = normalizeTerm(term) || "T1";
 
   await seedDefaultTermRequirements(safeYear);
+  await syncAllCourseRequirementsFromContent(safeYear);
 
   const summaryResult = await query(
     `
@@ -864,6 +873,7 @@ async function getCourseStatus({ year, term, subject, status }) {
   const safeStatus = status ? String(status).toLowerCase() : null;
 
   await seedDefaultTermRequirements(safeYear);
+  await syncAllCourseRequirementsFromContent(safeYear);
 
   const courseResult = await query(
     `
