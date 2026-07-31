@@ -99,12 +99,41 @@ layout: layouts/base.njk
     </div>
   </details>
 
-  <div class="course-body">
-    {% if lead %}
-      <p class="course-lead">{{ lead }}</p>
-    {% endif %}
-    <div class="content-body">
-      {{ content | safe }}
+  {% if postStatementEmbed and postStatementEmbed.url %}
+    <section class="course-post-embed">
+      <div class="course-post-embed-head">
+        <h2 class="section-title">{{ postStatementEmbed.title or "Activities Running This Week" }}</h2>
+        {% if postStatementEmbed.linkUrl %}
+          <a class="course-post-embed-link" href="{{ postStatementEmbed.linkUrl }}" target="_blank" rel="noopener noreferrer">
+            {{ postStatementEmbed.linkText or "Open in new tab" }}
+          </a>
+        {% endif %}
+      </div>
+
+      {% if postStatementEmbed.note %}
+        <p class="course-post-embed-note">{{ postStatementEmbed.note }}</p>
+      {% endif %}
+
+      <div class="course-post-embed-frame">
+        <iframe
+          src="{{ postStatementEmbed.url }}"
+          title="{{ postStatementEmbed.title or 'Embedded site' }}"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+          style="height: {{ postStatementEmbed.height or 1400 }}px;"
+        ></iframe>
+      </div>
+    </section>
+  {% endif %}
+
+  {% if not hideContent %}
+    <div class="course-body">
+      {% if lead %}
+        <p class="course-lead">{{ lead }}</p>
+      {% endif %}
+      <div class="content-body">
+        {{ content | safe }}
+      </div>
     </div>
-  </div>
+  {% endif %}
 </section>

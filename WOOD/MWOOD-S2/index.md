@@ -7,6 +7,7 @@ titleLines:
   - Woodwork
 summary: MWOOD Semester 2 course page with assessments, resources, and project statements.
 lead: Keep this page current with weekly build tasks, safety expectations, and assessment checkpoints.
+hideContent: true
 assessments:
   - code: Design, plan, and create a simple wooden project.
   - code: demonstrating an understanding of basic woodworking principles.
@@ -30,18 +31,12 @@ statement:
   title: Assessment statement
   open: true
   embedUrl: "/WOOD/MWOOD-S2/Course%20Outline%20%26%20Assessment%20Statements/MWOOD-S2.pdf"
+postStatementEmbed:
+  title: Middle School Woodwork
+  note: This view opens the live Google Site in an embedded frame. Use the button to open the site in a new tab if you want the full signed-in experience.
+  url: "https://sites.google.com/westlandhigh.school.nz/hardmaterialswhswebsite/hard-materials-wood/middle-woodwork?embedded=true"
+  linkText: Open Google Site in new tab
+  linkUrl: "https://sites.google.com/westlandhigh.school.nz/hardmaterialswhswebsite/hard-materials-wood/middle-woodwork"
+  height: 1600
 permalink: /WOOD/MWOOD-S2/
 ---
-## Current project
-
-Students are developing timber-based outcomes from testing to final production. This term focuses on evidence quality, process documentation, and safe workshop execution.
-
-## Materials and preparation
-
-- Bring workbook and process journal to every lesson.
-- Confirm material selection before cutting stages.
-- Complete planning sketches before practical build time.
-
-## Assessment and feedback
-
-Use this section to publish checkpoint dates, evidence requirements, and feedback reminders each week.
