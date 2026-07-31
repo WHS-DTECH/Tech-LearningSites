@@ -207,8 +207,8 @@ templateEngineOverride: njk
   };
   const STATUS_OPTIONS = [
     { value: "not_started", label: "--" },
-    { value: "incomplete", label: "x" },
-    { value: "complete", label: "tick" }
+    { value: "incomplete", label: "&#10007;" },
+    { value: "complete", label: "&#10003;" }
   ];
 
   const yearInput = document.getElementById("filter-year");
