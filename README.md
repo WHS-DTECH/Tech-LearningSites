@@ -71,6 +71,7 @@ Copy `.env.example` to `.env` for local use, and set these in Render for product
 - `DATABASE_URL`: Postgres connection string
 - `DATABASE_SSL`: optional (`false` for local non-SSL databases)
 - `ADMIN_API_KEY`: temporary admin API protection key until Google OAuth is enabled
+- `ADMIN_SESSION_SECRET`: signs admin session cookies (should be different from `ADMIN_API_KEY`)
 
 When `ADMIN_API_KEY` is set, include it in requests with header `x-admin-key`.
 
@@ -85,6 +86,7 @@ Also set the backend env vars in Render service settings:
 
 - `DATABASE_URL`
 - `ADMIN_API_KEY`
+- `ADMIN_SESSION_SECRET`
 - optional `DATABASE_SSL`
 
 If you want browser-based editing later, the next sensible step is to add a Git-backed CMS after the content structure is settled.
