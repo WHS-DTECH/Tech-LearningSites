@@ -82,10 +82,10 @@ templateEngineOverride: njk
             <th>Course</th>
             <th>Subject</th>
             <th>Assessments</th>
+            <th>Topic Buttons</th>
             <th>PDF Statement</th>
             <th>Health &amp; Safety</th>
             <th>Practical Skills</th>
-            <th>Topic Buttons</th>
             <th>Dashboard</th>
             <th>Updated by</th>
             <th>Notes</th>
@@ -754,14 +754,14 @@ templateEngineOverride: njk
             <td><strong>${escapeHtml(course.course_code)}</strong><br>${escapeHtml(course.course_name)}</td>
             <td>${escapeHtml(course.subject_code)}</td>
             <td>${renderStatusSelect("assessmentsStatus", course.assessments_status)}</td>
+            <td>${renderStatusSelect("topicButtonsStatus", course.topic_buttons_status)}</td>
             <td>${renderStatusSelect("pdfStatementStatus", course.pdf_statement_status)}</td>
             <td>${renderStatusSelect("healthSafetyStatus", course.health_safety_status)}</td>
             <td>${renderStatusSelect("practicalSkillsStatus", course.practical_skills_status)}</td>
-            <td>${renderStatusSelect("topicButtonsStatus", course.topic_buttons_status)}</td>
             <td>${statusBadge(course.dashboard_status)}</td>
             <td>${escapeHtml(course.updated_by || "-")}</td>
             <td><input class="admin-inline-input" data-field="notes" value="${escapeHtml(course.notes || "")}" placeholder="Optional note"></td>
-            <td><button type="button" class="button-secondary" data-action="save">Save</button></td>
+            <td><button type="button" class="button-secondary admin-course-save-button" data-action="save">Save</button></td>
           </tr>
         `;
       })

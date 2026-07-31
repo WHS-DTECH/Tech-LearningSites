@@ -1150,6 +1150,24 @@ img {
   font-weight: 800;
 }
 
+#admin-panel-course .admin-course-save-button {
+  min-height: 38px;
+  padding: 0.55rem 0.95rem;
+  border-color: #4c1d95;
+  background: linear-gradient(160deg, #8b3fd6, #5a189a);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(90, 24, 154, 0.32);
+}
+
+#admin-panel-course .admin-course-save-button:hover,
+#admin-panel-course .admin-course-save-button:focus-visible {
+  background: linear-gradient(160deg, #9f52e8, #6a1fb2);
+}
+
+#admin-panel-course .admin-course-save-button:disabled {
+  opacity: 0.72;
+}
+
 .admin-tab-panel {
   padding-top: 0.45rem;
 }
