@@ -5,7 +5,7 @@ shortTitle: Digital Learning Area
 displayTitle: Digital Technologies
 summary: Course pages for junior digital learning, middle school technology courses, and senior specialist digital pathways.
 activitySection:
-  title: Current Activities, Assessment Tasks, and Projects
+  title: Current Assessment Tasks and Projects
   description: This list mirrors what is currently pinned in DTECH-HUB this week.
   linkText: Open in DTECH-HUB
   linkUrl: "https://dtech-hub2.onrender.com/index.html"
