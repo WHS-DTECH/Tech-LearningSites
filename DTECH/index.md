@@ -11,10 +11,6 @@ activitySection:
   linkUrl: "https://dtech-hub2.onrender.com/index.html"
   openLabel: Open in DTECH-HUB
   cards:
-    - title: Commenting and Debugging Training
-      summary: Current activity
-      meta: Activities | 1 running
-      url: "https://dtech-hub2.onrender.com/ProjectPages/custom-activity.html?id=36"
     - title: Animation
       summary: Assessment task
       meta: Assessment Tasks | 8 running
