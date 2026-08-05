@@ -287,15 +287,61 @@ img {
 }
 
 .footer {
-  padding: 1.4rem 0 2.5rem;
-  color: var(--muted);
+  margin-top: 1.5rem;
+  padding: 1.2rem 1rem 2rem;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 250, 243, 0.72);
+  color: var(--ink);
   font-size: 0.95rem;
+}
+
+.site-footer-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.site-footer-column h2 {
+  margin: 0 0 0.45rem;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.05rem;
+}
+
+.site-footer-column ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.site-footer-column li {
+  margin: 0.25rem 0;
+}
+
+.site-footer-column a {
+  color: var(--accent-2);
+  text-decoration: none;
+}
+
+.site-footer-column a:hover,
+.site-footer-column a:focus-visible {
+  text-decoration: underline;
+}
+
+.site-footer-updated {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+  font-weight: 600;
 }
 
 @media (max-width: 900px) {
   .topbar-inner,
   .hero-grid,
   .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .site-footer-links {
     grid-template-columns: 1fr;
   }
 
