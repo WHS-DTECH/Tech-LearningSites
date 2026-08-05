@@ -5,6 +5,7 @@ const path = require("path");
 const STATUS_VALUES = new Set(["not_started", "incomplete", "complete", "pending"]);
 const TERM_VALUES = new Set(["T1", "T3"]);
 const COURSE_CONTENT_TARGETS = new Set(["11TEXT"]);
+const HEALTH_SAFETY_URL = "/Health-Safety/";
 const LOCKED_LINK_LABELS = {
   first: "Health & Safety",
   last: "Practical Skills"
@@ -247,7 +248,10 @@ function applyLockedLinkLabels(courseCode, links) {
   const output = links.map((link) => ({ ...link }));
   output[0] = {
     ...output[0],
-    label: LOCKED_LINK_LABELS.first
+    label: LOCKED_LINK_LABELS.first,
+    url: String(output[0]?.url || "").trim() === "#" || !String(output[0]?.url || "").trim()
+      ? HEALTH_SAFETY_URL
+      : String(output[0].url).trim()
   };
 
   output[output.length - 1] = {
@@ -475,7 +479,7 @@ function defaultCourseContent(courseCode) {
       "Replace with assessment 3."
     ],
     assessmentLinks: [
-      { label: LOCKED_LINK_LABELS.first, url: "#" },
+      { label: LOCKED_LINK_LABELS.first, url: HEALTH_SAFETY_URL },
       ...defaultLabels.map((label) => ({ label, url: "#" })),
       { label: LOCKED_LINK_LABELS.last, url: "#" }
     ]
