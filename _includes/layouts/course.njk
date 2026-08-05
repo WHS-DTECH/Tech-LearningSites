@@ -140,6 +140,7 @@ layout: layouts/base.njk
 
         const chipRow = document.getElementById("course-chip-row");
         if (chipRow && Array.isArray(data.assessmentLinks) && data.assessmentLinks.length) {
+          const healthSafetyPath = "/Health-Safety/";
           const configuredGroupStart = {{ assessmentGroup.start if assessmentGroup else 0 }};
           const configuredGroupEnd = {{ assessmentGroup.end if assessmentGroup else 0 }};
           const groupStart = configuredGroupStart;
@@ -159,7 +160,11 @@ layout: layouts/base.njk
               .replace(/&/g, "&amp;")
               .replace(/</g, "&lt;")
               .replace(/>/g, "&gt;");
-            const url = String(link.url || "#")
+            const rawUrl = String(link.url || "#").trim();
+            const resolvedUrl = /health\s*&\s*safety/i.test(String(link.label || "")) && (!rawUrl || rawUrl === "#")
+              ? healthSafetyPath
+              : rawUrl;
+            const url = resolvedUrl
               .replace(/\"/g, "&quot;");
 
             const className = groupStart && oneBased >= groupStart && oneBased <= groupEnd
