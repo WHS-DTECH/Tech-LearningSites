@@ -11,6 +11,7 @@ const LOCKED_LINK_LABELS = {
 };
 const SUBJECT_DEFAULT_LINK_LABELS = {
   DTECH: ["Course overview", "Database", "Programming", "Web Design", "Process", "Usability"],
+  COMP: ["Course overview", "Algorithms", "Programming", "Data", "Problem solving", "Evaluation"],
   DVC: ["Course overview", "Design brief", "Drawing", "Rendering", "Presentation", "Portfolio"],
   FOOD: ["Course overview", "Recipes", "Planning", "Nutrition", "Kitchen skills", "Evaluation"],
   TEXTILES: ["Course overview", "Materials", "Construction", "Design ideas", "Portfolio", "Evaluation"],
@@ -24,6 +25,10 @@ const COURSE_SEED = [
   { subjectCode: "DTECH", courseCode: "11DTECH", courseName: "Year 11 Digital Tech" },
   { subjectCode: "DTECH", courseCode: "12DTECH", courseName: "Year 12 Digital Tech" },
   { subjectCode: "DTECH", courseCode: "13DTECH", courseName: "Year 13 Digital Tech" },
+  { subjectCode: "COMP", courseCode: "MCOMP-S2", courseName: "Middle Computing Semester 2" },
+  { subjectCode: "COMP", courseCode: "11COMP", courseName: "Year 11 Computing" },
+  { subjectCode: "COMP", courseCode: "12COMP", courseName: "Year 12 Computing" },
+  { subjectCode: "COMP", courseCode: "13COMP", courseName: "Year 13 Computing" },
   { subjectCode: "DVC", courseCode: "JDVC", courseName: "Junior DVC" },
   { subjectCode: "DVC", courseCode: "MDVC-S1", courseName: "Middle DVC Semester 1" },
   { subjectCode: "DVC", courseCode: "MDVC-S2", courseName: "Middle DVC Semester 2" },
@@ -311,7 +316,7 @@ function evaluateHealthSafetyStatus(assessmentLinks) {
     return "not_started";
   }
 
-  return isValidLink(firstLink) ? "complete" : "incomplete";
+  return isValidLink(firstLink) ? "complete" : "not_started";
 }
 
 function evaluatePracticalSkillsStatus(assessmentLinks) {
@@ -323,7 +328,7 @@ function evaluatePracticalSkillsStatus(assessmentLinks) {
     return "not_started";
   }
 
-  return isValidLink(lastLink) ? "complete" : "incomplete";
+  return isValidLink(lastLink) ? "complete" : "not_started";
 }
 
 function evaluateTopicButtonsStatus(assessments, assessmentLinks) {
@@ -762,10 +767,7 @@ async function resetMwoodS2ContentFromPageIfNeeded(schoolYear) {
   const currentLinks = Array.isArray(row.assessment_links) ? row.assessment_links : [];
   const assessmentsLookDefault = currentAssessments.length === 0 || currentAssessments.every((item) => hasPlaceholderText(item));
   const linksLookDefault = currentLinks.length === 0 || currentLinks.every((link) => !isValidLink(link));
-  const firstUrl = String(currentLinks[0]?.url || "").trim();
-  const lastUrl = String(currentLinks[currentLinks.length - 1]?.url || "").trim();
-  const lockedEndpointsLinked = (firstUrl && firstUrl !== "#") || (lastUrl && lastUrl !== "#");
-  const needsReset = assessmentsLookDefault || linksLookDefault || !row.has_statement_pdf || lockedEndpointsLinked;
+  const needsReset = assessmentsLookDefault || linksLookDefault || !row.has_statement_pdf;
 
   if (!needsReset) {
     return;
@@ -778,12 +780,7 @@ async function resetMwoodS2ContentFromPageIfNeeded(schoolYear) {
 
   const assessments = normalizeAssessments(evidence.assessments);
   const assessmentLinks = applyLockedLinkLabels(courseCode, normalizeAssessmentLinks(evidence.assessmentLinks));
-  const actorName = null;
-
-  if (assessmentLinks.length) {
-    assessmentLinks[0].url = "#";
-    assessmentLinks[assessmentLinks.length - 1].url = "#";
-  }
+  const actorName = "page-evidence: MWOOD-S2";
 
   await query(
     `
@@ -794,7 +791,7 @@ async function resetMwoodS2ContentFromPageIfNeeded(schoolYear) {
           statement_mime = CASE WHEN $5::bytea IS NOT NULL THEN 'application/pdf' ELSE statement_mime END,
           statement_pdf = COALESCE($5, statement_pdf),
           updated_at = NOW(),
-          updated_by = COALESCE($6, updated_by)
+          updated_by = $6
       WHERE course_code = $1
     `,
     [
@@ -808,34 +805,47 @@ async function resetMwoodS2ContentFromPageIfNeeded(schoolYear) {
   );
 
   await syncCourseRequirementFromContent(courseCode, actorName, schoolYear);
+}
+
+async function applyEvidenceOverrides(year) {
+  // MWOOD-S2 is currently maintained as fully updated and can be used as evidence.
+  if (!hasMwoodS2Evidence()) {
+    return;
+  }
 
   await query(
     `
       UPDATE admin_term_requirements r
-      SET updated_by = NULL,
-          notes = NULL
+      SET outline_status = 'complete',
+          statement_status = 'complete',
+          assessments_status = 'complete',
+          pdf_statement_status = 'complete',
+          health_safety_status = 'complete',
+          practical_skills_status = 'complete',
+          topic_buttons_status = 'complete',
+          outline_updated_at = COALESCE(r.outline_updated_at, NOW()),
+          statement_updated_at = COALESCE(r.statement_updated_at, NOW()),
+          assessments_updated_at = COALESCE(r.assessments_updated_at, NOW()),
+          pdf_statement_updated_at = COALESCE(r.pdf_statement_updated_at, NOW()),
+          health_safety_updated_at = COALESCE(r.health_safety_updated_at, NOW()),
+          practical_skills_updated_at = COALESCE(r.practical_skills_updated_at, NOW()),
+          topic_buttons_updated_at = COALESCE(r.topic_buttons_updated_at, NOW()),
+          updated_by = COALESCE(r.updated_by, 'evidence: MWOOD-S2 page'),
+          notes = COALESCE(r.notes, 'Auto-marked complete from MWOOD-S2 course page evidence')
       FROM admin_courses c
       WHERE r.course_id = c.id
         AND c.course_code = 'MWOOD-S2'
         AND r.school_year = $1
         AND r.school_term IN ('T1', 'T3')
-        AND (
-          r.updated_by IS NOT NULL
-          OR r.notes IS NOT NULL
-        )
     `,
-    [schoolYear]
+    [year]
   );
-}
-
-async function applyEvidenceOverrides(year) {
-  // Legacy override retired: statuses are now derived from course content data.
-  void year;
 }
 
 async function seedSubjectsAndCourses() {
   const subjectNames = {
     DTECH: "Digital Technologies",
+    COMP: "Computing",
     DVC: "Design and Visual Communication",
     FOOD: "Food and Hospitality",
     TEXTILES: "Textiles",

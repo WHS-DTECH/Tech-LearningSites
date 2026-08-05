@@ -43,6 +43,7 @@ templateEngineOverride: njk
       <select id="filter-subject">
         <option value="">All</option>
         <option value="DTECH">DTECH</option>
+        <option value="COMP">COMP</option>
         <option value="DVC">DVC</option>
         <option value="FOOD">FOOD</option>
         <option value="TEXTILES">TEXTILES</option>
