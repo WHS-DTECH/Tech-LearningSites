@@ -334,6 +334,38 @@ img {
   font-weight: 600;
 }
 
+.health-safety-table-wrap {
+  overflow-x: auto;
+}
+
+.health-safety-table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+  border: 1px solid rgba(20, 33, 61, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.health-safety-table th,
+.health-safety-table td {
+  padding: 0.7rem;
+  border-bottom: 1px solid rgba(20, 33, 61, 0.1);
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.45;
+}
+
+.health-safety-table th {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1rem;
+  background: rgba(90, 24, 154, 0.09);
+}
+
+.health-safety-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
 @media (max-width: 900px) {
   .topbar-inner,
   .hero-grid,
