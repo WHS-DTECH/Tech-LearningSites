@@ -6,6 +6,12 @@ displayTitle: Computing
 summary: Course pages for middle and senior computing pathways.
 lead: Use this page for active computing briefs, milestones, and assessment updates.
 schoolGroups:
+  - title: Junior School
+    subtitle: Core digital learning and introductory coding
+    icon: 💻
+    links:
+      - label: JDTECH - Junior Digital Tech
+        url: "/DTECH/JDTECH/"
   - title: Middle School
     subtitle: Semester and option courses
     icon: 💻
