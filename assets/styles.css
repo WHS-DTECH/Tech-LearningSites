@@ -342,6 +342,17 @@ img {
   overflow-x: auto;
 }
 
+.health-safety-section .health-safety-content-rail {
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+.health-safety-section .health-safety-content-rail > .section-title,
+.health-safety-section .health-safety-content-rail > p {
+  margin-left: 0;
+  margin-right: 0;
+}
+
 .health-safety-table {
   width: 100%;
   min-width: 1080px;
@@ -406,6 +417,10 @@ img {
   .topbar-inner {
     display: grid;
     border-radius: 28px;
+  }
+
+  .health-safety-section .health-safety-content-rail {
+    max-width: none;
   }
 
   .nav {
