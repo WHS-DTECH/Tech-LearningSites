@@ -336,6 +336,8 @@ img {
 
 .health-safety-table-wrap {
   margin-top: 0.8rem;
+  margin-left: 0.15rem;
+  margin-right: 0.15rem;
   border: 1px solid rgba(20, 33, 61, 0.12);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.92);
@@ -344,8 +346,8 @@ img {
 
 .health-safety-table {
   width: 100%;
-  min-width: 100%;
-  table-layout: fixed;
+  min-width: 1080px;
+  table-layout: auto;
   border-collapse: collapse;
 }
 
