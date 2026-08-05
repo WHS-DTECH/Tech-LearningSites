@@ -343,8 +343,8 @@ img {
 }
 
 .health-safety-section .health-safety-content-rail {
-  max-width: 1060px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
 }
 
 .health-safety-section .health-safety-content-rail > .section-title,
@@ -355,7 +355,7 @@ img {
 
 .health-safety-table {
   width: 100%;
-  min-width: 1080px;
+  min-width: 0;
   table-layout: fixed;
   border-collapse: collapse;
 }
@@ -391,6 +391,7 @@ img {
   text-align: left;
   vertical-align: top;
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .health-safety-table th {
