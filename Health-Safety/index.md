@@ -3,12 +3,20 @@ layout: layouts/base.njk
 title: Health & Safety
 permalink: /Health-Safety/
 ---
-<section class="page-shell section">
+<section class="page-shell section health-safety-section">
   <h2 class="section-title">Health &amp; Safety</h2>
   <p>This page is the shared Health &amp; Safety home for all course pages.</p>
 
   <div class="health-safety-table-wrap">
     <table class="health-safety-table">
+      <colgroup>
+        <col class="hs-col-subjects">
+        <col class="hs-col-courses">
+        <col class="hs-col-environment">
+        <col class="hs-col-pep">
+        <col class="hs-col-tools">
+        <col class="hs-col-behaviour">
+      </colgroup>
       <thead>
         <tr>
           <th>Subjects</th>

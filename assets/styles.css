@@ -335,9 +335,7 @@ img {
 }
 
 .health-safety-table-wrap {
-  margin-top: 0.8rem;
-  margin-left: 0.15rem;
-  margin-right: 0.15rem;
+  margin: 0.8rem 0 0;
   border: 1px solid rgba(20, 33, 61, 0.12);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.92);
@@ -347,8 +345,32 @@ img {
 .health-safety-table {
   width: 100%;
   min-width: 1080px;
-  table-layout: auto;
+  table-layout: fixed;
   border-collapse: collapse;
+}
+
+.health-safety-table .hs-col-subjects {
+  width: 7%;
+}
+
+.health-safety-table .hs-col-courses {
+  width: 16%;
+}
+
+.health-safety-table .hs-col-environment {
+  width: 17%;
+}
+
+.health-safety-table .hs-col-pep {
+  width: 16%;
+}
+
+.health-safety-table .hs-col-tools {
+  width: 21%;
+}
+
+.health-safety-table .hs-col-behaviour {
+  width: 23%;
 }
 
 .health-safety-table th,
