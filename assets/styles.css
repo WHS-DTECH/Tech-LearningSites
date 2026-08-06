@@ -1477,11 +1477,70 @@ img {
   color: #fff1f2;
 }
 
+#uploader-drive-sync-all-button {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: 1px solid rgba(147, 197, 253, 0.75);
+  color: #eff6ff;
+}
+
 #uploader-drive-sync-button:hover,
 #uploader-drive-sync-button:focus-visible,
 #uploader-drive-match-button:hover,
-#uploader-drive-match-button:focus-visible {
+#uploader-drive-match-button:focus-visible,
+#uploader-drive-sync-all-button:hover,
+#uploader-drive-sync-all-button:focus-visible {
   filter: brightness(1.08);
+}
+
+.admin-drive-run-results {
+  margin-top: 0.7rem;
+  border: 1px solid rgba(190, 156, 255, 0.22);
+  border-radius: 10px;
+  padding: 0.65rem;
+  background: rgba(42, 23, 66, 0.24);
+}
+
+.admin-drive-run-results h6 {
+  margin: 0 0 0.45rem;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.admin-drive-run-results ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.admin-drive-run-item {
+  border: 1px solid rgba(190, 156, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-drive-run-item p {
+  margin: 0.1rem 0;
+  line-height: 1.35;
+  font-size: 0.84rem;
+}
+
+.admin-drive-run-item.status-synced {
+  border-color: rgba(134, 239, 172, 0.6);
+  background: rgba(34, 197, 94, 0.18);
+}
+
+.admin-drive-run-item.status-skipped {
+  border-color: rgba(253, 224, 71, 0.5);
+  background: rgba(234, 179, 8, 0.16);
+}
+
+.admin-drive-run-item.status-error {
+  border-color: rgba(252, 165, 165, 0.6);
+  background: rgba(220, 38, 38, 0.16);
 }
 
 #uploader-save-assessments {

@@ -145,9 +145,11 @@ templateEngineOverride: njk
             <select id="uploader-drive-file-select" class="admin-inline-select"></select>
             <button id="uploader-drive-sync-button" type="button" class="button-secondary">Sync from Drive</button>
             <button id="uploader-drive-match-button" type="button" class="button-secondary">Sync matching PDF</button>
+            <button id="uploader-drive-sync-all-button" type="button" class="button-secondary">Scan and Sync All Courses</button>
           </div>
           <p id="uploader-drive-match-hint" class="admin-message"></p>
           <p id="uploader-drive-status" class="admin-message"></p>
+          <div id="uploader-drive-run-results" class="admin-drive-run-results" hidden></div>
         </div>
       </article>
     </div>
@@ -197,8 +199,10 @@ templateEngineOverride: njk
   const uploaderDriveFolderLink = document.getElementById("uploader-drive-folder-link");
   const uploaderDriveSyncButton = document.getElementById("uploader-drive-sync-button");
   const uploaderDriveMatchButton = document.getElementById("uploader-drive-match-button");
+  const uploaderDriveSyncAllButton = document.getElementById("uploader-drive-sync-all-button");
   const uploaderDriveMatchHint = document.getElementById("uploader-drive-match-hint");
   const uploaderDriveStatus = document.getElementById("uploader-drive-status");
+  const uploaderDriveRunResults = document.getElementById("uploader-drive-run-results");
   const uploaderActorName = document.getElementById("uploader-actor-name");
   const uploaderLastUpdate = document.getElementById("uploader-last-update");
   const uploaderActivityLog = document.getElementById("uploader-activity-log");
@@ -371,9 +375,9 @@ templateEngineOverride: njk
     return Array.from(candidates).filter(Boolean);
   }
 
-  function scoreDriveFileForCourse(fileName, courseCode) {
+  function scoreDriveFileForCourse(fileName, courseCode, courseOverride = null) {
     const normalizedFileName = normalizeMatchText(fileName);
-    const course = getSelectedUploaderCourse();
+    const course = courseOverride || uploaderCourses.find((item) => item.courseCode === courseCode) || getSelectedUploaderCourse();
     const candidates = buildDriveMatchCandidates(course);
     const safeCourseCode = normalizeMatchText(courseCode);
 
@@ -404,13 +408,13 @@ templateEngineOverride: njk
     return score || -1;
   }
 
-  function findBestDriveFileForCourse(courseCode) {
+  function findBestDriveFileForCourse(courseCode, courseOverride = null) {
     let bestIndex = -1;
     let bestScore = -1;
     let secondBestScore = -1;
 
     availableDriveFiles.forEach((file, index) => {
-      const score = scoreDriveFileForCourse(file.fileName, courseCode);
+      const score = scoreDriveFileForCourse(file.fileName, courseCode, courseOverride);
       if (score > bestScore) {
         secondBestScore = bestScore;
         bestScore = score;
@@ -434,6 +438,7 @@ templateEngineOverride: njk
       uploaderDriveFileSelect.disabled = true;
       uploaderDriveSyncButton.disabled = true;
       uploaderDriveMatchButton.disabled = true;
+      uploaderDriveSyncAllButton.disabled = true;
       setMessage(uploaderDriveMatchHint, "Best match: none available.");
       return;
     }
@@ -448,6 +453,7 @@ templateEngineOverride: njk
     uploaderDriveFileSelect.disabled = false;
     uploaderDriveSyncButton.disabled = false;
     uploaderDriveMatchButton.disabled = !match.isClearMatch;
+    uploaderDriveSyncAllButton.disabled = false;
 
     if (match.isClearMatch) {
       setMessage(uploaderDriveMatchHint, `Best match: ${availableDriveFiles[match.bestIndex].fileName}`);
@@ -467,8 +473,40 @@ templateEngineOverride: njk
     renderDriveFileOptions();
   }
 
-  async function syncDriveFile(file) {
-    await apiRequest(`/api/admin/course-content/${getSelectedUploaderCourseCode()}/statement/google-drive`, {
+  function renderDriveRunResults(rows) {
+    if (!uploaderDriveRunResults) {
+      return;
+    }
+
+    const safeRows = Array.isArray(rows) ? rows : [];
+    if (!safeRows.length) {
+      uploaderDriveRunResults.hidden = true;
+      uploaderDriveRunResults.innerHTML = "";
+      return;
+    }
+
+    const html = safeRows.map((row) => {
+      const status = String(row.status || "pending");
+      const fileName = row.fileName ? `File: ${escapeHtml(row.fileName)}` : "File: -";
+      const details = row.details ? escapeHtml(row.details) : "";
+      return `
+        <li class="admin-drive-run-item status-${escapeHtml(status)}">
+          <p><strong>${escapeHtml(row.courseCode)}</strong> - ${escapeHtml(status.toUpperCase())}</p>
+          <p>${fileName}</p>
+          <p>${details}</p>
+        </li>
+      `;
+    }).join("");
+
+    uploaderDriveRunResults.hidden = false;
+    uploaderDriveRunResults.innerHTML = `
+      <h6>Drive Scan Results</h6>
+      <ul>${html}</ul>
+    `;
+  }
+
+  async function syncDriveFileToCourse(file, courseCode) {
+    await apiRequest(`/api/admin/course-content/${courseCode}/statement/google-drive`, {
       method: "POST",
       body: JSON.stringify({
         fileId: file.fileId,
@@ -476,9 +514,109 @@ templateEngineOverride: njk
         updatedBy: getUploaderActorName()
       })
     });
+  }
+
+  async function syncDriveFile(file) {
+    await syncDriveFileToCourse(file, getSelectedUploaderCourseCode());
 
     await loadUploaderData();
     await refreshCourseStatusAfterUploaderUpdate();
+  }
+
+  async function scanAndSyncAllCoursesFromDrive() {
+    const courses = Array.isArray(uploaderCourses) ? uploaderCourses : [];
+    if (!courses.length) {
+      setMessage(uploaderDriveStatus, "No courses available for bulk sync.", true);
+      return;
+    }
+
+    if (!availableDriveFiles.length) {
+      setMessage(uploaderDriveStatus, "No Drive PDFs available to match.", true);
+      return;
+    }
+
+    const runRows = courses.map((course) => ({
+      courseCode: course.courseCode,
+      status: "pending",
+      fileName: "",
+      details: "Scanning for match..."
+    }));
+    renderDriveRunResults(runRows);
+
+    const usedFileIds = new Set();
+    let syncedCount = 0;
+    let skippedCount = 0;
+    let failedCount = 0;
+
+    for (let index = 0; index < courses.length; index += 1) {
+      const course = courses[index];
+      const match = findBestDriveFileForCourse(course.courseCode, course);
+
+      if (!match.isClearMatch || match.bestIndex < 0) {
+        runRows[index] = {
+          ...runRows[index],
+          status: "skipped",
+          details: "No clear filename match found."
+        };
+        skippedCount += 1;
+        renderDriveRunResults(runRows);
+        continue;
+      }
+
+      const file = availableDriveFiles[match.bestIndex];
+      if (!file || !file.fileId) {
+        runRows[index] = {
+          ...runRows[index],
+          status: "skipped",
+          details: "Matched file is missing required Drive metadata."
+        };
+        skippedCount += 1;
+        renderDriveRunResults(runRows);
+        continue;
+      }
+
+      if (usedFileIds.has(file.fileId)) {
+        runRows[index] = {
+          ...runRows[index],
+          status: "skipped",
+          fileName: file.fileName,
+          details: "File already used for another matched course."
+        };
+        skippedCount += 1;
+        renderDriveRunResults(runRows);
+        continue;
+      }
+
+      try {
+        await syncDriveFileToCourse(file, course.courseCode);
+        usedFileIds.add(file.fileId);
+        runRows[index] = {
+          ...runRows[index],
+          status: "synced",
+          fileName: file.fileName,
+          details: "Loaded to course page successfully."
+        };
+        syncedCount += 1;
+      } catch (error) {
+        runRows[index] = {
+          ...runRows[index],
+          status: "error",
+          fileName: file.fileName,
+          details: error.message || "Sync failed"
+        };
+        failedCount += 1;
+      }
+
+      renderDriveRunResults(runRows);
+    }
+
+    await loadUploaderData();
+    await refreshCourseStatusAfterUploaderUpdate();
+    setMessage(
+      uploaderDriveStatus,
+      `Bulk sync finished. Synced: ${syncedCount}, Skipped: ${skippedCount}, Errors: ${failedCount}${failedCount ? " (check results list below)." : "."}`,
+      failedCount > 0
+    );
   }
 
   function renderUploaderActivity(activity) {
@@ -1074,6 +1212,24 @@ templateEngineOverride: njk
       setMessage(uploaderDriveStatus, error.message, true);
       uploaderDriveMatchButton.textContent = "Sync matching PDF";
     } finally {
+      renderDriveFileOptions();
+    }
+  });
+
+  uploaderDriveSyncAllButton.addEventListener("click", async () => {
+    uploaderDriveSyncAllButton.disabled = true;
+    uploaderDriveSyncButton.disabled = true;
+    uploaderDriveMatchButton.disabled = true;
+    uploaderDriveSyncAllButton.textContent = "Scanning...";
+    setMessage(uploaderDriveStatus, "Scanning shared Drive and syncing matched course PDFs...");
+
+    try {
+      await loadDriveFileOptions();
+      await scanAndSyncAllCoursesFromDrive();
+    } catch (error) {
+      setMessage(uploaderDriveStatus, error.message, true);
+    } finally {
+      uploaderDriveSyncAllButton.textContent = "Scan and Sync All Courses";
       renderDriveFileOptions();
     }
   });
