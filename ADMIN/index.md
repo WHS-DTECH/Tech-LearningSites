@@ -293,6 +293,10 @@ templateEngineOverride: njk
   }
 
   function syncUploaderCourseLabel() {
+    if (!uploaderCourseLabel) {
+      return;
+    }
+
     uploaderCourseLabel.textContent = getSelectedUploaderCourseCode();
   }
 
@@ -817,6 +821,8 @@ templateEngineOverride: njk
 
       showDashboard();
       await loadDashboardData();
+      await loadUploaderCourseOptions();
+      await loadDriveFileOptions();
       await loadUploaderData();
     } catch (error) {
       setMessage(loginMessage, error.message, true);
