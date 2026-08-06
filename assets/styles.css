@@ -226,6 +226,11 @@ img {
   box-shadow: var(--shadow);
 }
 
+.page-shell.section {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .section-title {
   margin: 0 0 1rem;
   font-size: clamp(1.7rem, 4vw, 2.6rem);
