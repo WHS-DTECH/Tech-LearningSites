@@ -10,6 +10,14 @@ const LOCKED_LINK_LABELS = {
   first: "Health & Safety",
   last: "Practical Skills"
 };
+const SUBJECT_DISPLAY_NAMES = {
+  DTECH: "DTECH",
+  COMP: "COMP",
+  DVC: "DVC",
+  FOOD: "Food",
+  TEXTILES: "Textiles",
+  WOOD: "Woodwork"
+};
 const SUBJECT_DEFAULT_LINK_LABELS = {
   DTECH: ["Course overview", "Database", "Programming", "Web Design", "Process", "Usability"],
   COMP: ["Course overview", "Algorithms", "Programming", "Data", "Problem solving", "Evaluation"],
@@ -215,6 +223,23 @@ function normalizeCourseCode(courseCode) {
   return String(courseCode || "").trim().toUpperCase();
 }
 
+function getCourseSubjectCode(courseCode) {
+  const safeCode = normalizeCourseCode(courseCode);
+  const seededCourse = COURSE_SEED.find((entry) => entry.courseCode === safeCode);
+  return seededCourse?.subjectCode || null;
+}
+
+function getPracticalSkillsLabel(courseCode) {
+  const subjectCode = getCourseSubjectCode(courseCode);
+  const subjectName = subjectCode ? SUBJECT_DISPLAY_NAMES[subjectCode] || subjectCode : null;
+
+  if (!subjectName) {
+    return LOCKED_LINK_LABELS.last;
+  }
+
+  return `${subjectName} Practical Skills`;
+}
+
 function normalizeAssessments(input) {
   if (!Array.isArray(input)) {
     return [];
@@ -256,7 +281,7 @@ function applyLockedLinkLabels(courseCode, links) {
 
   output[output.length - 1] = {
     ...output[output.length - 1],
-    label: LOCKED_LINK_LABELS.last
+    label: getPracticalSkillsLabel(courseCode)
   };
 
   return output;
@@ -481,7 +506,7 @@ function defaultCourseContent(courseCode) {
     assessmentLinks: [
       { label: LOCKED_LINK_LABELS.first, url: HEALTH_SAFETY_URL },
       ...defaultLabels.map((label) => ({ label, url: "#" })),
-      { label: LOCKED_LINK_LABELS.last, url: "#" }
+      { label: getPracticalSkillsLabel(courseCode), url: "#" }
     ]
   };
 }

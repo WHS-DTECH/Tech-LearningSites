@@ -210,9 +210,17 @@ templateEngineOverride: njk
   const DEFAULT_UPLOADER_COURSE_CODE = "11TEXT";
   const UPLOADER_LINK_ROWS = 7;
   const UPLOADER_ACTOR_STORAGE_KEY = "whsUploaderActorName";
+  const SUBJECT_DISPLAY_NAMES = {
+    DTECH: "DTECH",
+    COMP: "COMP",
+    DVC: "DVC",
+    FOOD: "Food",
+    TEXTILES: "Textiles",
+    WOOD: "Woodwork"
+  };
   const LOCKED_BUTTON_LABELS = {
-    0: "Health & Safety",
-    6: "Practical Skills"
+    first: "Health & Safety",
+    last: "Practical Skills"
   };
   const STATUS_OPTIONS = [
     { value: "not_started", label: "--" },
@@ -265,7 +273,17 @@ templateEngineOverride: njk
   }
 
   function getLockedButtonLabelsForSelectedCourse() {
-    return LOCKED_BUTTON_LABELS;
+    const course = getSelectedUploaderCourse();
+    const subjectCode = String(course?.subjectCode || "").toUpperCase();
+    const subjectName = SUBJECT_DISPLAY_NAMES[subjectCode] || subjectCode;
+    const practicalLabel = subjectName
+      ? `${subjectName} Practical Skills`
+      : LOCKED_BUTTON_LABELS.last;
+
+    return {
+      0: LOCKED_BUTTON_LABELS.first,
+      [UPLOADER_LINK_ROWS - 1]: practicalLabel
+    };
   }
 
   function mapLinksToUploaderRows(links) {
