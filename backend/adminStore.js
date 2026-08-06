@@ -6,6 +6,7 @@ const STATUS_VALUES = new Set(["not_started", "incomplete", "complete", "pending
 const TERM_VALUES = new Set(["T1", "T3"]);
 const COURSE_CONTENT_TARGETS = new Set(["11TEXT"]);
 const HEALTH_SAFETY_URL = "/Health-Safety/";
+const PRACTICAL_SKILLS_SHARED_URL = "https://dtech-hub2.onrender.com/practical-skills/checklist.html";
 const LOCKED_LINK_LABELS = {
   first: "Health & Safety",
   last: "Practical Skills"
@@ -240,6 +241,17 @@ function getPracticalSkillsLabel(courseCode) {
   return `${subjectName} Practical Skills`;
 }
 
+function getPracticalSkillsUrl(courseCode, currentUrl) {
+  const subjectCode = getCourseSubjectCode(courseCode);
+  const normalizedCurrentUrl = String(currentUrl || "").trim();
+
+  if (subjectCode === "DTECH" || subjectCode === "COMP") {
+    return PRACTICAL_SKILLS_SHARED_URL;
+  }
+
+  return normalizedCurrentUrl || "#";
+}
+
 function normalizeAssessments(input) {
   if (!Array.isArray(input)) {
     return [];
@@ -281,7 +293,8 @@ function applyLockedLinkLabels(courseCode, links) {
 
   output[output.length - 1] = {
     ...output[output.length - 1],
-    label: getPracticalSkillsLabel(courseCode)
+    label: getPracticalSkillsLabel(courseCode),
+    url: getPracticalSkillsUrl(courseCode, output[output.length - 1]?.url)
   };
 
   return output;
