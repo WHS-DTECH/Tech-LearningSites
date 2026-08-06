@@ -366,7 +366,7 @@ async function handleAdminApi(request, response, requestUrl) {
 
   if (request.method === "GET" && pathname === "/api/admin/google-drive-pdfs") {
     const data = await fetchPublicDriveFolderPdfs();
-    sendJson(response, 200, { ok: true, ...data });
+    sendJson(response, 200, { ok: true, folderUrl: getGoogleDriveFolderUrl(), ...data });
     return;
   }
 

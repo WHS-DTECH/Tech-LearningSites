@@ -138,6 +138,9 @@ templateEngineOverride: njk
         <div class="admin-uploader-drive-sync">
           <h5>Google Drive Sync</h5>
           <p>Import a PDF from the shared Google Drive folder into this course statement slot.</p>
+          <p>
+            <a id="uploader-drive-folder-link" href="https://drive.google.com/drive/folders/1sLelrgqZRq1jKxH_AJ_21jpNjH8FSLLF?usp=drive_link" target="_blank" rel="noopener noreferrer">Open Shared Google Drive folder</a>
+          </p>
           <div class="admin-uploader-drive-controls">
             <select id="uploader-drive-file-select" class="admin-inline-select"></select>
             <button id="uploader-drive-sync-button" type="button" class="button-secondary">Sync from Drive</button>
@@ -191,6 +194,7 @@ templateEngineOverride: njk
   const uploaderPdfInput = document.getElementById("uploader-statement-pdf");
   const uploaderPdfStatus = document.getElementById("uploader-pdf-status");
   const uploaderDriveFileSelect = document.getElementById("uploader-drive-file-select");
+  const uploaderDriveFolderLink = document.getElementById("uploader-drive-folder-link");
   const uploaderDriveSyncButton = document.getElementById("uploader-drive-sync-button");
   const uploaderDriveMatchButton = document.getElementById("uploader-drive-match-button");
   const uploaderDriveMatchHint = document.getElementById("uploader-drive-match-hint");
@@ -454,6 +458,11 @@ templateEngineOverride: njk
 
   async function loadDriveFileOptions() {
     const data = await apiRequest("/api/admin/google-drive-pdfs");
+
+    if (uploaderDriveFolderLink && typeof data.folderUrl === "string" && data.folderUrl.trim()) {
+      uploaderDriveFolderLink.href = data.folderUrl;
+    }
+
     availableDriveFiles = Array.isArray(data.files) ? data.files : [];
     renderDriveFileOptions();
   }
