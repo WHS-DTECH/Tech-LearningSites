@@ -1,0 +1,160 @@
+---
+layout: layouts/base.njk
+title: Relief Plan
+permalink: /ReleverPlan/
+---
+<section class="page-shell section relief-plan" id="relief-plan-app">
+  <div class="relief-plan-heading">
+    <div>
+      <p class="eyebrow">Staff planning</p>
+      <h1 class="section-title">Relief Plan</h1>
+      <p class="relief-plan-intro">2027 technology events, observances, and planning anchors from the reliever calendar.</p>
+    </div>
+    <button class="button-secondary" id="relief-plan-logout" type="button" hidden>Sign out</button>
+  </div>
+
+  <section class="relief-plan-login" id="relief-plan-login" hidden>
+    <h2>Staff access</h2>
+    <p>Enter the Relief Plan access key supplied by the ADMIN team.</p>
+    <form class="admin-inline-form" id="relief-plan-login-form">
+      <label for="relief-plan-access-key">Access key</label>
+      <input id="relief-plan-access-key" name="accessKey" type="password" autocomplete="current-password" required>
+      <button class="button" type="submit">Open Relief Plan</button>
+    </form>
+    <p class="admin-message is-error" id="relief-plan-login-message" hidden></p>
+  </section>
+
+  <section id="relief-plan-content" hidden>
+    <p class="relief-plan-status" id="relief-plan-status"></p>
+    <div class="relief-plan-calendar" id="relief-plan-calendar"></div>
+    <aside class="relief-plan-details" id="relief-plan-details" aria-live="polite">
+      <h2>Event details</h2>
+      <p>Select an event in the calendar to view its description and source.</p>
+    </aside>
+  </section>
+</section>
+
+<script>
+  (() => {
+    const login = document.getElementById("relief-plan-login");
+    const loginForm = document.getElementById("relief-plan-login-form");
+    const loginMessage = document.getElementById("relief-plan-login-message");
+    const content = document.getElementById("relief-plan-content");
+    const calendar = document.getElementById("relief-plan-calendar");
+    const details = document.getElementById("relief-plan-details");
+    const status = document.getElementById("relief-plan-status");
+    const logout = document.getElementById("relief-plan-logout");
+    let events = [];
+
+    const escapeHtml = (value) => String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+    const parseDate = (value) => {
+      const match = String(value || "").match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      return match ? new Date(Number(match[3]), Number(match[1]) - 1, Number(match[2])) : null;
+    };
+
+    const isoDate = (date) => date ? [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-") : "";
+
+    const formatDate = (value) => {
+      const date = parseDate(value);
+      return date ? date.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : value;
+    };
+
+    const descriptionHtml = (value) => escapeHtml(value).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+
+    const showDetails = (event) => {
+      details.innerHTML = `
+        <h2>${escapeHtml(event.subject)}</h2>
+        <p class="relief-plan-detail-date"><strong>${formatDate(event.startDate)}</strong>${event.endDate && event.endDate !== event.startDate ? ` to <strong>${formatDate(event.endDate)}</strong>` : ""}</p>
+        ${event.location ? `<p><strong>Location:</strong> ${escapeHtml(event.location)}</p>` : ""}
+        <p class="relief-plan-description">${descriptionHtml(event.description).replace(/\n/g, "<br>")}</p>
+      `;
+    };
+
+    const renderCalendar = () => {
+      const byDate = new Map();
+      events.forEach((event, index) => {
+        const date = parseDate(event.startDate);
+        if (!date) return;
+        const key = isoDate(date);
+        if (!byDate.has(key)) byDate.set(key, []);
+        byDate.get(key).push({ event, index });
+      });
+
+      calendar.innerHTML = Array.from({ length: 12 }, (_, month) => {
+        const first = new Date(2027, month, 1);
+        const days = new Date(2027, month + 1, 0).getDate();
+        const offset = (first.getDay() + 6) % 7;
+        let cells = Array.from({ length: offset }, () => '<div class="relief-plan-day relief-plan-day-empty"></div>').join("");
+
+        for (let day = 1; day <= days; day += 1) {
+          const date = new Date(2027, month, day);
+          const dayEvents = byDate.get(isoDate(date)) || [];
+          cells += `<div class="relief-plan-day"><time datetime="${isoDate(date)}">${day}</time>${dayEvents.map(({ event, index }) => `<button class="relief-plan-event" type="button" data-event-index="${index}" title="${escapeHtml(event.subject)}">${escapeHtml(event.subject)}</button>`).join("")}</div>`;
+        }
+
+        return `<section class="relief-plan-month"><h2>${first.toLocaleDateString(undefined, { month: "long" })}</h2><div class="relief-plan-weekdays"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div><div class="relief-plan-days">${cells}</div></section>`;
+      }).join("");
+
+      calendar.querySelectorAll("[data-event-index]").forEach((button) => {
+        button.addEventListener("click", () => showDetails(events[Number(button.dataset.eventIndex)]));
+      });
+    };
+
+    const loadEvents = async () => {
+      const response = await fetch("/api/relief-plan/events", { credentials: "same-origin" });
+      if (!response.ok) throw new Error("Relief Plan access is unavailable.");
+      const data = await response.json();
+      events = data.events || [];
+      status.textContent = `${events.length} events loaded for ${data.year}.`;
+      renderCalendar();
+      content.hidden = false;
+      logout.hidden = false;
+    };
+
+    const checkSession = async () => {
+      const response = await fetch("/api/relief-plan/session", { credentials: "same-origin" });
+      const data = await response.json();
+      if (data.authenticated) {
+        await loadEvents();
+      } else {
+        login.hidden = false;
+      }
+    };
+
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      loginMessage.hidden = true;
+      const accessKey = new FormData(loginForm).get("accessKey");
+      const response = await fetch("/api/relief-plan/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ accessKey })
+      });
+      if (!response.ok) {
+        loginMessage.textContent = "That access key was not accepted.";
+        loginMessage.hidden = false;
+        return;
+      }
+      login.hidden = true;
+      await loadEvents();
+    });
+
+    logout.addEventListener("click", async () => {
+      await fetch("/api/relief-plan/logout", { method: "POST", credentials: "same-origin" });
+      window.location.reload();
+    });
+
+    checkSession().catch((error) => {
+      login.hidden = false;
+      loginMessage.textContent = error.message;
+      loginMessage.hidden = false;
+    });
+  })();
+</script>

@@ -2,6 +2,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const { parse } = require("csv-parse/sync");
 const { formidable } = require("formidable");
 const {
   getPool,
@@ -19,7 +20,9 @@ const {
 const port = process.env.PORT || 3000;
 const distDir = path.join(__dirname, "dist");
 const ADMIN_COOKIE_NAME = "whs_admin_session";
+const RELIEF_PLAN_COOKIE_NAME = "whs_relief_plan_session";
 const ADMIN_SESSION_TTL_SECONDS = 60 * 60 * 8;
+const RELIEF_PLAN_CSV_PATH = path.join(__dirname, "ReleverPlan", "2027_NZ_Technology_Reliever_Google_Calendar.csv");
 const DEFAULT_GOOGLE_DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/1sLelrgqZRq1jKxH_AJ_21jpNjH8FSLLF?usp=drive_link";
 
 const contentTypes = {
@@ -184,6 +187,13 @@ function createSessionToken() {
   return `${payload}.${signature}`;
 }
 
+function createRoleSessionToken(role) {
+  const expiresAt = Date.now() + ADMIN_SESSION_TTL_SECONDS * 1000;
+  const payload = `${role}:${expiresAt}`;
+  const signature = signSessionPayload(payload);
+  return `${payload}.${signature}`;
+}
+
 function safeCompare(a, b) {
   const left = Buffer.from(String(a));
   const right = Buffer.from(String(b));
@@ -211,6 +221,25 @@ function verifySessionToken(token) {
   return safeCompare(signature, expectedSignature);
 }
 
+function verifyRoleSessionToken(token) {
+  if (!token || !token.includes(".")) {
+    return null;
+  }
+
+  const separator = token.lastIndexOf(".");
+  const payload = token.slice(0, separator);
+  const signature = token.slice(separator + 1);
+  const [role, rawExpiresAt] = payload.split(":");
+  const expiresAt = Number.parseInt(rawExpiresAt, 10);
+
+  if (!role || !Number.isFinite(expiresAt) || Date.now() > expiresAt) {
+    return null;
+  }
+
+  const expectedSignature = signSessionPayload(payload);
+  return safeCompare(signature, expectedSignature) ? role : null;
+}
+
 function createSessionCookie(token) {
   const secureFlag = process.env.NODE_ENV === "production" ? "; Secure" : "";
   return `${ADMIN_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${ADMIN_SESSION_TTL_SECONDS}${secureFlag}`;
@@ -219,6 +248,11 @@ function createSessionCookie(token) {
 function clearSessionCookie() {
   const secureFlag = process.env.NODE_ENV === "production" ? "; Secure" : "";
   return `${ADMIN_COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secureFlag}`;
+}
+
+function createReliefPlanCookie(token) {
+  const secureFlag = process.env.NODE_ENV === "production" ? "; Secure" : "";
+  return `${RELIEF_PLAN_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${ADMIN_SESSION_TTL_SECONDS}${secureFlag}`;
 }
 
 function isAdminAuthorized(request) {
@@ -235,6 +269,50 @@ function isAdminAuthorized(request) {
 
   const cookies = parseCookies(request);
   return verifySessionToken(cookies[ADMIN_COOKIE_NAME]);
+}
+
+function getReliefPlanRole(request) {
+  const configuredAdminKey = process.env.ADMIN_API_KEY;
+  if (configuredAdminKey) {
+    const providedAdminKey = request.headers["x-admin-key"];
+    if (providedAdminKey === configuredAdminKey) {
+      return "ADMIN";
+    }
+
+    const adminCookies = parseCookies(request);
+    if (verifySessionToken(adminCookies[ADMIN_COOKIE_NAME])) {
+      return "ADMIN";
+    }
+  }
+
+  const teacherKey = process.env.TEACHER_RELIEF_PLAN_KEY;
+  if (!teacherKey) {
+    return null;
+  }
+
+  const providedKey = request.headers["x-teacher-key"];
+  if (providedKey && providedKey === teacherKey) {
+    return "Teacher";
+  }
+
+  const cookies = parseCookies(request);
+  return verifyRoleSessionToken(cookies[RELIEF_PLAN_COOKIE_NAME]);
+}
+
+function readReliefPlanEvents() {
+  const csvText = fs.readFileSync(RELIEF_PLAN_CSV_PATH, "utf8");
+  const rows = parse(csvText, { columns: true, skip_empty_lines: true, bom: true, relax_column_count: true });
+
+  return rows.map((row) => ({
+    subject: row.Subject || "",
+    startDate: row["Start Date"] || "",
+    startTime: row["Start Time"] || "",
+    endDate: row["End Date"] || row["Start Date"] || "",
+    endTime: row["End Time"] || "",
+    allDay: String(row["All Day Event"]).toLowerCase() === "true",
+    description: row.Description || "",
+    location: row.Location || ""
+  }));
 }
 
 async function readJsonBody(request) {
@@ -517,6 +595,60 @@ async function handlePublicCourseContentApi(response, requestUrl) {
   });
 }
 
+async function handleReliefPlanApi(request, response, requestUrl) {
+  const { pathname } = requestUrl;
+
+  if (request.method === "POST" && pathname === "/api/relief-plan/login") {
+    const body = await readJsonBody(request);
+    const adminKey = process.env.ADMIN_API_KEY;
+    const teacherKey = process.env.TEACHER_RELIEF_PLAN_KEY;
+    let role = null;
+
+    if (adminKey && body.accessKey === adminKey) {
+      role = "ADMIN";
+    } else if (teacherKey && body.accessKey === teacherKey) {
+      role = "Teacher";
+    }
+
+    if (!role) {
+      sendJson(response, 401, { ok: false, error: "Invalid Relief Plan access key" });
+      return;
+    }
+
+    sendJson(response, 200, { ok: true, role }, {
+      "Set-Cookie": createReliefPlanCookie(createRoleSessionToken(role))
+    });
+    return;
+  }
+
+  if (request.method === "POST" && pathname === "/api/relief-plan/logout") {
+    const secureFlag = process.env.NODE_ENV === "production" ? "; Secure" : "";
+    sendJson(response, 200, { ok: true }, {
+      "Set-Cookie": `${RELIEF_PLAN_COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secureFlag}`
+    });
+    return;
+  }
+
+  const role = getReliefPlanRole(request);
+
+  if (pathname === "/api/relief-plan/session") {
+    sendJson(response, 200, { ok: true, authenticated: Boolean(role), role });
+    return;
+  }
+
+  if (!role) {
+    sendJson(response, 401, { ok: false, error: "Relief Plan access is restricted to ADMINs and Teachers" });
+    return;
+  }
+
+  if (pathname === "/api/relief-plan/events") {
+    sendJson(response, 200, { ok: true, year: 2027, role, events: readReliefPlanEvents() });
+    return;
+  }
+
+  sendJson(response, 404, { ok: false, error: "Relief Plan route not found" });
+}
+
 const server = http.createServer((request, response) => {
   const requestUrl = new URL(request.url, `http://${request.headers.host || "localhost"}`);
 
@@ -532,6 +664,16 @@ const server = http.createServer((request, response) => {
 
   if (requestUrl.pathname.startsWith("/api/course-content/")) {
     handlePublicCourseContentApi(response, requestUrl).catch((error) => {
+      sendJson(response, 500, {
+        ok: false,
+        error: error.message || "Server error"
+      });
+    });
+    return;
+  }
+
+  if (requestUrl.pathname.startsWith("/api/relief-plan/")) {
+    handleReliefPlanApi(request, response, requestUrl).catch((error) => {
       sendJson(response, 500, {
         ok: false,
         error: error.message || "Server error"
