@@ -122,6 +122,41 @@ img {
   color: var(--muted);
 }
 
+.relief-plan-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+}
+
+.relief-plan-controls label {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.relief-plan-controls input {
+  min-height: 2.5rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  background: #ffffff;
+  font: inherit;
+}
+
+.relief-plan-calendar-heading {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.relief-plan-calendar-heading h2 {
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
 .relief-plan-login,
 .relief-plan-details {
   margin-top: 1.25rem;
@@ -133,9 +168,6 @@ img {
 }
 
 .relief-plan-calendar {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
   margin-top: 1.25rem;
 }
 
@@ -167,7 +199,7 @@ img {
 }
 
 .relief-plan-day {
-  min-height: 4.8rem;
+  min-height: 7rem;
   padding: 0.28rem;
   border: 1px solid rgba(72, 34, 116, 0.12);
   background: rgba(255, 255, 255, 0.62);
@@ -179,6 +211,17 @@ img {
   margin-bottom: 0.2rem;
   font-size: 0.72rem;
   font-weight: 700;
+}
+
+.relief-plan-day-today {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.relief-plan-no-event {
+  display: block;
+  color: rgba(95, 79, 128, 0.62);
+  font-size: 0.62rem;
 }
 
 .relief-plan-day-empty {
@@ -216,12 +259,6 @@ img {
   line-height: 1.55;
 }
 
-@media (max-width: 900px) {
-  .relief-plan-calendar {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 620px) {
   .relief-plan-heading {
     display: block;
@@ -231,8 +268,9 @@ img {
     margin-top: 0.5rem;
   }
 
-  .relief-plan-calendar {
-    grid-template-columns: 1fr;
+  .relief-plan-controls label {
+    width: 100%;
+    margin-left: 0;
   }
 }
 
