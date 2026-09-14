@@ -755,6 +755,66 @@ img {
     color: var(--muted);
   }
 
+  .subject-calendar-wrap {
+    width: min(calc(100% - 1rem), 1520px);
+    margin-top: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .subject-calendar-card {
+    padding: 1.35rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(20, 33, 61, 0.08);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: var(--shadow);
+  }
+
+  .subject-calendar-head {
+    margin-bottom: 1rem;
+  }
+
+  .subject-calendar-table-wrap {
+    overflow-x: auto;
+  }
+
+  .subject-calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.62);
+  }
+
+  .subject-calendar-table th,
+  .subject-calendar-table td {
+    padding: 0.8rem 0.9rem;
+    border: 1px solid rgba(72, 34, 116, 0.16);
+    text-align: left;
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  .subject-calendar-table thead th {
+    color: var(--muted);
+    background: rgba(139, 63, 214, 0.08);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .subject-calendar-table tbody th {
+    width: 24%;
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 1.05rem;
+  }
+
+  .subject-calendar-table tbody td:nth-child(2) {
+    width: 60%;
+  }
+
+  .subject-calendar-table tbody td[colspan] {
+    color: var(--muted);
+    font-style: italic;
+  }
+
   .subject-side-panel h2 {
     margin-top: 0;
     margin-bottom: 1rem;
