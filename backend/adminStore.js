@@ -20,8 +20,20 @@ const SUBJECT_DISPLAY_NAMES = {
   WOOD: "Woodwork"
 };
 const SUBJECT_DEFAULT_LINK_LABELS = {
-  DTECH: ["Course overview", "Database", "Programming", "Web Design", "Process", "Usability"],
-  COMP: ["Course overview", "Algorithms", "Programming", "Data", "Problem solving", "Evaluation"],
+  DTECH: [
+    "91902 Database",
+    "91906 Programming",
+    "91903 Digital Media",
+    "91907 Digital Technologies",
+    "91908 Computer Science"
+  ],
+  COMP: [
+    "91902 Algorithms",
+    "91906 Programming",
+    "91903 Data",
+    "91907 Problem solving",
+    "91908 Computer Science"
+  ],
   DVC: ["Course overview", "Design brief", "Drawing", "Rendering", "Presentation", "Portfolio"],
   FOOD: ["Course overview", "Recipes", "Planning", "Nutrition", "Kitchen skills", "Evaluation"],
   TEXTILES: ["Course overview", "Materials", "Construction", "Design ideas", "Portfolio", "Evaluation"],

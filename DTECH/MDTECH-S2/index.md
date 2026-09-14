@@ -15,17 +15,19 @@ assessments:
 assessmentLinks:
   - label: Course overview
     url: "#"
-  - label: Assessment statement
+  - label: 91902 Database
     url: "#"
-  - label: Workshop tools
+  - label: 91906 Programming
     url: "#"
-  - label: Project checklist
+  - label: 91903 Digital Media
     url: "#"
-  - label: Practical skills
+  - label: 91907 Digital Technologies
+    url: "#"
+  - label: 91908 Computer Science
     url: "#"
 assessmentGroup:
   start: 2
-  end: 4
+  end: 6
   ariaLabel: Assessment-related links
 statement:
   title: Assessment statement
