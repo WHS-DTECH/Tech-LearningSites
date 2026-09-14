@@ -73,7 +73,7 @@ layout: layouts/base.njk
     </nav>
   {% endif %}
 
-  <details class="course-statement" {% if statement and statement.open %}open{% endif %}>
+  <details id="course-statement" class="course-statement" {% if statement and statement.open %}open{% endif %}>
     <summary>
       <span>{{ statement.title or "Assessment statement" }}</span>
       <span class="course-chevron" aria-hidden="true"></span>
@@ -116,18 +116,23 @@ layout: layouts/base.njk
   <script>
     (async () => {
       const configuredCourseCode = "{{ contentApiCourseCode or '' }}";
-      const pathParts = window.location.pathname.split("/").filter(Boolean);
-      const courseCode = configuredCourseCode || pathParts[pathParts.length - 1] || "";
 
-      if (!courseCode) {
+      if (!configuredCourseCode) {
         return;
       }
 
+      const courseCode = configuredCourseCode;
+
       try {
         const response = await fetch(`/api/course-content/${courseCode}`, { credentials: "same-origin" });
+
+        if (!response.ok) {
+          return;
+        }
+
         const data = await response.json();
 
-        if (!response.ok || data.ok === false) {
+        if (!data || data.ok === false) {
           return;
         }
 
@@ -205,7 +210,7 @@ layout: layouts/base.njk
           `;
         }
       } catch (error) {
-        console.error("Unable to load dynamic course content", error);
+        // Keep static course metadata intact when the API is unavailable or the database is not configured.
       }
     })();
   </script>

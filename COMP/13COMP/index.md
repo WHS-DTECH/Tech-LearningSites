@@ -9,21 +9,23 @@ summary: 13COMP course page with assessments, resources, and project statements.
 lead: Keep this page current with weekly computing tasks and assessment checkpoints.
 hideContent: true
 assessments:
-  - code: Replace with assessment 1.
-  - code: Replace with assessment 2.
-  - code: Replace with assessment 3.
+  - code: 91902 - Algorithms
+  - code: 91906 - Programming
+  - code: 91903 - Data
+  - code: 91907 - Problem solving
+  - code: 91908 - Computer Science
 assessmentLinks:
-  - label: Course overview
+  - label: Course outline
+    url: "#course-statement"
+  - label: 91902 - Algorithms
     url: "#"
-  - label: 91902 Algorithms
+  - label: 91906 - Programming
     url: "#"
-  - label: 91906 Programming
+  - label: 91903 - Data
     url: "#"
-  - label: 91903 Data
+  - label: 91907 - Problem solving
     url: "#"
-  - label: 91907 Problem solving
-    url: "#"
-  - label: 91908 Computer Science
+  - label: 91908 - Computer Science
     url: "#"
 assessmentGroup:
   start: 2
