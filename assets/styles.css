@@ -773,6 +773,12 @@ img {
     margin-bottom: 1rem;
   }
 
+  .subject-calendar-date {
+    margin: 0.25rem 0 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
   .subject-calendar-table-wrap {
     overflow-x: auto;
   }

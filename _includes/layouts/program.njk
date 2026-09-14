@@ -42,7 +42,8 @@ layout: layouts/base.njk
   <article class="subject-calendar-card">
     <div class="subject-calendar-head">
       <div>
-        <h2 class="section-title" data-subject-calendar-title>Today's Calendar Events</h2>
+        <h2 class="section-title">Today's Calendar Events</h2>
+        <p class="subject-calendar-date" data-subject-calendar-date>Loading today's date...</p>
       </div>
     </div>
     <div class="subject-calendar-table-wrap">
@@ -113,13 +114,13 @@ layout: layouts/base.njk
     const calendar = document.querySelector("[data-subject-calendar]");
     if (!calendar) return;
 
-    const title = calendar.querySelector("[data-subject-calendar-title]");
+    const dateLabel = calendar.querySelector("[data-subject-calendar-date]");
     const eventsBody = calendar.querySelector("[data-subject-calendar-events]");
     const today = new Date();
     const pad = (value) => String(value).padStart(2, "0");
     const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
     const displayDate = today.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
-    title.textContent = `Today's Calendar Events - ${displayDate}`;
+    dateLabel.textContent = displayDate;
 
     const escapeHtml = (value) => String(value || "")
       .replace(/&/g, "&amp;")
