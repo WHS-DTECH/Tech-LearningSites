@@ -15,8 +15,8 @@ assessments:
   - code: 91907 - Use complex processes to develop a digital technologies outcome
   - code: 91908 - Analyse an area of computer science
 assessmentLinks:
-  - label: Course outline
-    url: "#course-statement"
+  - label: Health & Safety
+    url: "/Health-Safety/"
   - label: 91902 - Database
     url: "#"
   - label: 91906 - Programming
@@ -27,6 +27,8 @@ assessmentLinks:
     url: "#"
   - label: 91908 - Computer Science
     url: "#"
+  - label: DTECH Practical Skills
+    url: "https://dtech-hub2.onrender.com/practical-skills/checklist.html"
 assessmentGroup:
   start: 2
   end: 6

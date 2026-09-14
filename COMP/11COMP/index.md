@@ -14,8 +14,8 @@ assessments:
   - code: 29773 - Produce digital images for a range of digital media
   - code: 29769 - Use the main features and functions of a word processing application for a purpose
 assessmentLinks:
-  - label: Course outline
-    url: "#course-statement"
+  - label: Health & Safety
+    url: "/Health-Safety/"
   - label: 29777 - Database
     url: "#"
   - label: 29770 - Spreadsheet
@@ -24,6 +24,8 @@ assessmentLinks:
     url: "#"
   - label: 29769 - Word Processing
     url: "#"
+  - label: COMP Practical Skills
+    url: "https://dtech-hub2.onrender.com/practical-skills/checklist.html"
 assessmentGroup:
   start: 2
   end: 5

@@ -16,8 +16,8 @@ assessments:
   - code: 92005 - Develop a digital technologies outcome
   - code: 92006 - Demonstrate understanding of usability in human-computer interfaces
 assessmentLinks:
-  - label: Course outline
-    url: "#course-statement"
+  - label: Health & Safety
+    url: "/Health-Safety/"
   - label: 29777 - Database
     url: "#"
   - label: 92004 - Programming
@@ -30,6 +30,8 @@ assessmentLinks:
     url: "#"
   - label: 92006 - Usability
     url: "#"
+  - label: DTECH Practical Skills
+    url: "https://dtech-hub2.onrender.com/practical-skills/checklist.html"
 assessmentGroup:
   start: 2
   end: 7

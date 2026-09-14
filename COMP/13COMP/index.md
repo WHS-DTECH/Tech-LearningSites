@@ -13,14 +13,16 @@ assessments:
   - code: 29787 - Produce and use a relational database to provide a solution for organisational use
   - code: 29786 - Produce a spreadsheet for organisational use
 assessmentLinks:
-  - label: Course outline
-    url: "#course-statement"
+  - label: Health & Safety
+    url: "/Health-Safety/"
   - label: 29785 - Word Processing
     url: "#"
   - label: 29787 - Relational Database
     url: "#"
   - label: 29786 - Spreadsheet
     url: "#"
+  - label: COMP Practical Skills
+    url: "https://dtech-hub2.onrender.com/practical-skills/checklist.html"
 assessmentGroup:
   start: 2
   end: 4

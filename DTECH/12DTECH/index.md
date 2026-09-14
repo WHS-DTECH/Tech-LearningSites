@@ -15,8 +15,8 @@ assessments:
   - code: 91897 - Use advanced processes to develop a digital technologies outcome
   - code: 91898 - Demonstrate understanding of a computer science concept
 assessmentLinks:
-  - label: Course outline
-    url: "#course-statement"
+  - label: Health & Safety
+    url: "/Health-Safety/"
   - label: 91892 - Database
     url: "#"
   - label: 91896 - Programming
@@ -27,6 +27,8 @@ assessmentLinks:
     url: "#"
   - label: 91898 - Computer Science
     url: "#"
+  - label: DTECH Practical Skills
+    url: "https://dtech-hub2.onrender.com/practical-skills/checklist.html"
 assessmentGroup:
   start: 2
   end: 6

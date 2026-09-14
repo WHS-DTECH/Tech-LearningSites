@@ -15,8 +15,8 @@ assessments:
   - code: 91897 - Use advanced processes to develop a digital technologies outcome
   - code: 29770 - Use the main features and functions of a spreadsheet application for a purpose
 assessmentLinks:
-  - label: Course outline
-    url: "#course-statement"
+  - label: Health & Safety
+    url: "/Health-Safety/"
   - label: 29777 - Database
     url: "#"
   - label: 29769 - Word Processing
@@ -27,6 +27,8 @@ assessmentLinks:
     url: "#"
   - label: 29770 - Spreadsheet
     url: "#"
+  - label: COMP Practical Skills
+    url: "https://dtech-hub2.onrender.com/practical-skills/checklist.html"
 assessmentGroup:
   start: 2
   end: 6
