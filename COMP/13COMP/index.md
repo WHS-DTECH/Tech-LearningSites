@@ -9,31 +9,26 @@ summary: 13COMP course page with assessments, resources, and project statements.
 lead: Keep this page current with weekly computing tasks and assessment checkpoints.
 hideContent: true
 assessments:
-  - code: 91902 - Algorithms
-  - code: 91906 - Programming
-  - code: 91903 - Data
-  - code: 91907 - Problem solving
-  - code: 91908 - Computer Science
+  - code: 29785 - Use a word processing application to integrate images, spreadsheet and database data into documents
+  - code: 29787 - Produce and use a relational database to provide a solution for organisational use
+  - code: 29786 - Produce a spreadsheet for organisational use
 assessmentLinks:
   - label: Course outline
     url: "#course-statement"
-  - label: 91902 - Algorithms
+  - label: 29785 - Word Processing
     url: "#"
-  - label: 91906 - Programming
+  - label: 29787 - Relational Database
     url: "#"
-  - label: 91903 - Data
-    url: "#"
-  - label: 91907 - Problem solving
-    url: "#"
-  - label: 91908 - Computer Science
+  - label: 29786 - Spreadsheet
     url: "#"
 assessmentGroup:
   start: 2
-  end: 6
+  end: 4
   ariaLabel: Assessment-related links
 statement:
   title: Assessment statement
   open: true
-  downloadUrl: "#"
+  embedUrl: "/api/course-content/13COMP/statement.pdf"
+  height: 920
 permalink: /COMP/13COMP/
 ---
