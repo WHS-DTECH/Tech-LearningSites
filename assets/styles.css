@@ -943,6 +943,14 @@ img {
   padding-bottom: 1rem;
 }
 
+.course-statement-source {
+  margin: 1rem 0 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .course-embed-frame {
   background: #1f1f1f;
   padding: 0.8rem;

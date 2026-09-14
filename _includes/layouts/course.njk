@@ -98,6 +98,11 @@ layout: layouts/base.njk
       {% else %}
         <p>Add an embedUrl or downloadUrl in this page frontmatter to show the statement file.</p>
       {% endif %}
+
+      <p class="course-statement-source">
+        Loaded from the Learning Site ADMIN portal.<br>
+        Last Updated: {{ siteContentLastUpdated }}
+      </p>
     </div>
   </details>
 
