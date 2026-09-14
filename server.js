@@ -303,7 +303,7 @@ function readReliefPlanEvents() {
   const csvText = fs.readFileSync(RELIEF_PLAN_CSV_PATH, "utf8");
   const rows = parse(csvText, { columns: true, skip_empty_lines: true, bom: true, relax_column_count: true });
 
-  return rows.map((row) => ({
+  const events = rows.map((row) => ({
     subject: row.Subject || "",
     startDate: row["Start Date"] || "",
     startTime: row["Start Time"] || "",
@@ -313,6 +313,39 @@ function readReliefPlanEvents() {
     description: row.Description || "",
     location: row.Location || ""
   }));
+
+  const recurring2026Dates = {
+    "Father's Day": ["09/06/2026", "09/06/2026"],
+    "Labour Day": ["10/26/2026", "10/26/2026"],
+    "Westland Anniversary Day": ["12/07/2026", "12/07/2026"]
+  };
+  const recurring2026Events = events
+    .filter((event) => {
+      const startYear = event.startDate.slice(-4);
+      const month = Number.parseInt(event.startDate.slice(0, 2), 10);
+      return startYear === "2027" && month >= 9 && event.description.includes("Date status: Fixed.");
+    })
+    .map((event) => ({
+      ...event,
+      startDate: event.startDate.replace(/\/2027$/, "/2026"),
+      endDate: event.endDate.replace(/\/2027$/, "/2026")
+    }));
+
+  for (const event of events) {
+    const dates = recurring2026Dates[event.subject];
+    if (!dates) {
+      continue;
+    }
+
+    recurring2026Events.push({
+      ...event,
+      startDate: dates[0],
+      endDate: dates[1],
+      description: event.description.replace("2027", "2026")
+    });
+  }
+
+  return [...events, ...recurring2026Events];
 }
 
 async function readJsonBody(request) {
