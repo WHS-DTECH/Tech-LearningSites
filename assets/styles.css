@@ -813,13 +813,7 @@ img {
   }
 
   .subject-calendar-table tbody td:nth-child(2) {
-    width: 48%;
-  }
-
-  .subject-calendar-table tbody td:nth-child(4) {
-    width: 20%;
-    color: var(--muted);
-    font-style: italic;
+    width: 60%;
   }
 
   .subject-calendar-table tbody td[colspan] {

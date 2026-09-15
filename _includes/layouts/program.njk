@@ -53,11 +53,10 @@ layout: layouts/base.njk
             <th>Event</th>
             <th>Details</th>
             <th>Location</th>
-            <th>Relief Activity</th>
           </tr>
         </thead>
         <tbody data-subject-calendar-events>
-            <tr><td colspan="4">Loading today's events...</td></tr>
+            <tr><td colspan="3">Loading today's events...</td></tr>
         </tbody>
       </table>
     </div>
@@ -68,7 +67,7 @@ layout: layouts/base.njk
         <p>Select an event in the calendar to view its description and source.</p>
       </div>
       <div class="subject-course-names">
-        <h2>Course Names</h2>
+        <h2>Relief Activity</h2>
         <ul>
           {% for group in schoolGroups or [] %}
             {% for link in group.links or [] %}
@@ -156,7 +155,7 @@ layout: layouts/base.njk
       .then((data) => {
         const todaysEvents = (data.events || []).filter((event) => parseCsvDate(event.startDate) <= todayKey && todayKey <= parseCsvDate(event.endDate || event.startDate));
         if (!todaysEvents.length) {
-          eventsBody.innerHTML = '<tr><td colspan="4">No calendar events scheduled for today.</td></tr>';
+          eventsBody.innerHTML = '<tr><td colspan="3">No calendar events scheduled for today.</td></tr>';
           return;
         }
 
@@ -165,12 +164,11 @@ layout: layouts/base.njk
             <th scope="row">${escapeHtml(event.subject)}</th>
             <td>${escapeHtml(event.description).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">Source</a>')}</td>
             <td>${escapeHtml(event.location) || "-"}</td>
-            <td>To be added</td>
           </tr>
         `).join("");
       })
       .catch(() => {
-        eventsBody.innerHTML = '<tr><td colspan="4">Sign in through Relief Plan to view today\'s calendar events.</td></tr>';
+        eventsBody.innerHTML = '<tr><td colspan="3">Sign in through Relief Plan to view today\'s calendar events.</td></tr>';
       });
   })();
 </script>
