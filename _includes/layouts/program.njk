@@ -57,11 +57,27 @@ layout: layouts/base.njk
           </tr>
         </thead>
         <tbody data-subject-calendar-events>
-          <tr><td colspan="3">Loading today's events...</td></tr>
+            <tr><td colspan="4">Loading today's events...</td></tr>
         </tbody>
       </table>
     </div>
   </article>
+    <aside class="subject-calendar-details" aria-label="Calendar details and course names">
+      <div class="relief-plan-details" id="relief-plan-details" aria-live="polite">
+        <h2>Event details</h2>
+        <p>Select an event in the calendar to view its description and source.</p>
+      </div>
+      <div class="subject-course-names">
+        <h2>Course Names</h2>
+        <ul>
+          {% for group in schoolGroups or [] %}
+            {% for link in group.links or [] %}
+              <li>{{ link.label }}</li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      </div>
+    </aside>
 </section>
 
 {% if not activitySection and embeddedSection and embeddedSection.url %}
