@@ -167,6 +167,38 @@ img {
   box-shadow: var(--shadow);
 }
 
+.relief-plan-course-links {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.relief-plan-course-links h2 {
+  margin-top: 0;
+  font-family: "Fraunces", Georgia, serif;
+}
+
+.relief-plan-course-links ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem 2rem;
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.relief-plan-course-links a {
+  color: var(--accent-2);
+}
+
+@media (max-width: 620px) {
+  .relief-plan-course-links ul {
+    grid-template-columns: 1fr;
+  }
+}
+
 .relief-plan-calendar {
   margin-top: 1.25rem;
 }
