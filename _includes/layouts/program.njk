@@ -66,10 +66,6 @@ layout: layouts/base.njk
         <h2>Event Details</h2>
         <p>Select an event in the calendar to view its description and source.</p>
       </div>
-      <div class="relief-plan-description" aria-live="polite">
-        <h2>Event Description</h2>
-        <p>Select an event in the calendar to view its description and source.</p>
-      </div>
       <div class="subject-course-names">
         <h2>Relief Lessons</h2>
         <ul>
@@ -136,6 +132,7 @@ layout: layouts/base.njk
 
     const dateLabel = calendar.querySelector("[data-subject-calendar-date]");
     const eventsBody = calendar.querySelector("[data-subject-calendar-events]");
+    const details = document.getElementById("relief-plan-details");
     const today = new Date();
     const pad = (value) => String(value).padStart(2, "0");
     const todayKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
@@ -154,6 +151,26 @@ layout: layouts/base.njk
       return match ? `${match[3]}-${match[1]}-${match[2]}` : "";
     };
 
+    const formatDate = (value) => {
+      const match = String(value || "").match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (!match) return value || "";
+      const date = new Date(Number(match[3]), Number(match[1]) - 1, Number(match[2]));
+      return date.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+    };
+
+    const renderDetails = (event) => {
+      if (!details) return;
+      const aboutText = event.aboutTheEvent || event.description || "No description available for this event.";
+      const sourceText = event.source ? `<p><strong>Source:</strong> <a href="${escapeHtml(event.source)}" target="_blank" rel="noopener noreferrer">${escapeHtml(event.source)}</a></p>` : "";
+      details.innerHTML = `
+        <h2>${escapeHtml(event.subject)}</h2>
+        <p class="relief-plan-detail-date"><strong>${escapeHtml(formatDate(event.startDate))}</strong>${event.endDate && event.endDate !== event.startDate ? ` to <strong>${escapeHtml(formatDate(event.endDate))}</strong>` : ""}</p>
+        ${event.location ? `<p><strong>Location:</strong> ${escapeHtml(event.location)}</p>` : ""}
+        <p class="relief-plan-description"><strong>About the Event:</strong><br>${escapeHtml(aboutText).replace(/\n/g, "<br>")}</p>
+        ${sourceText}
+      `;
+    };
+
     fetch("/api/relief-plan/events", { credentials: "same-origin" })
       .then((response) => response.ok ? response.json() : Promise.reject(new Error("Staff access required")))
       .then((data) => {
@@ -164,12 +181,28 @@ layout: layouts/base.njk
         }
 
         eventsBody.innerHTML = todaysEvents.map((event) => `
-          <tr>
+          <tr data-event-index="${encodeURIComponent(event.subject)}" tabindex="0">
             <th scope="row">${escapeHtml(event.subject)}</th>
             <td>${escapeHtml(event.description).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">Source</a>')}</td>
             <td>${escapeHtml(event.location) || "-"}</td>
           </tr>
         `).join("");
+
+        const eventRows = eventsBody.querySelectorAll("tr[data-event-index]");
+        eventRows.forEach((row) => {
+          const eventSubject = decodeURIComponent(row.dataset.eventIndex);
+          const matchingEvent = todaysEvents.find((event) => event.subject === eventSubject);
+          if (!matchingEvent) return;
+          row.addEventListener("click", () => renderDetails(matchingEvent));
+          row.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              renderDetails(matchingEvent);
+            }
+          });
+        });
+
+        if (todaysEvents[0]) renderDetails(todaysEvents[0]);
       })
       .catch(() => {
         eventsBody.innerHTML = '<tr><td colspan="3">Sign in through Relief Plan to view today\'s calendar events.</td></tr>';
