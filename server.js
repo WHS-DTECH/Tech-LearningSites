@@ -2,6 +2,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const XLSX = require("xlsx");
 const { parse } = require("csv-parse/sync");
 const { formidable } = require("formidable");
 const {
@@ -299,20 +300,90 @@ function getReliefPlanRole(request) {
   return verifyRoleSessionToken(cookies[RELIEF_PLAN_COOKIE_NAME]);
 }
 
+function normalizeReliefPlanDate(value) {
+  if (!value) return "";
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return "";
+    const match = trimmed.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+    if (match) {
+      return `${match[3]}-${String(match[1]).padStart(2, "0")}-${String(match[2]).padStart(2, "0")}`;
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
+    }
+    return trimmed;
+  }
+
+  if (value instanceof Date) {
+    return [value.getFullYear(), String(value.getMonth() + 1).padStart(2, "0"), String(value.getDate()).padStart(2, "0")].join("-");
+  }
+
+  return String(value).trim();
+}
+
+function buildReliefPlanEventKey(subject, startDate, endDate) {
+  return `${String(subject || "").trim().toLowerCase()}|${normalizeReliefPlanDate(startDate)}|${normalizeReliefPlanDate(endDate)}`;
+}
+
+function readExpandedReliefPlanEvents() {
+  const workbookPath = path.join(__dirname, "ReleverPlan", "2027_NZ_Technology_Reliever_Events_Expanded.xlsx");
+  if (!fs.existsSync(workbookPath)) {
+    return new Map();
+  }
+
+  const workbook = XLSX.readFile(workbookPath);
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(sheet, { defval: "", raw: false });
+  const lookup = new Map();
+
+  for (const row of rows) {
+    const subject = String(row.Event || row.Subject || "").trim();
+    const startDate = normalizeReliefPlanDate(row["Start Date"]);
+    const endDate = normalizeReliefPlanDate(row["End Date"] || row["Start Date"]);
+    if (!subject || !startDate) {
+      continue;
+    }
+
+    lookup.set(buildReliefPlanEventKey(subject, startDate, endDate), {
+      aboutTheEvent: String(row["About the Event"] || row.Description || "").trim(),
+      description: String(row.Description || "").trim(),
+      source: String(row.Source || "").trim(),
+      technologyContext: String(row["Technology Context"] || "").trim(),
+      location: String(row.Location || "").trim()
+    });
+  }
+
+  return lookup;
+}
+
 function readReliefPlanEvents() {
   const csvText = fs.readFileSync(RELIEF_PLAN_CSV_PATH, "utf8");
   const rows = parse(csvText, { columns: true, skip_empty_lines: true, bom: true, relax_column_count: true });
+  const expandedLookup = readExpandedReliefPlanEvents();
 
-  const events = rows.map((row) => ({
-    subject: row.Subject || "",
-    startDate: row["Start Date"] || "",
-    startTime: row["Start Time"] || "",
-    endDate: row["End Date"] || row["Start Date"] || "",
-    endTime: row["End Time"] || "",
-    allDay: String(row["All Day Event"]).toLowerCase() === "true",
-    description: row.Description || "",
-    location: row.Location || ""
-  }));
+  const events = rows.map((row) => {
+    const subject = row.Subject || "";
+    const startDate = row["Start Date"] || "";
+    const endDate = row["End Date"] || row["Start Date"] || "";
+    const eventKey = buildReliefPlanEventKey(subject, startDate, endDate);
+    const expanded = expandedLookup.get(eventKey) || {};
+
+    return {
+      subject,
+      startDate,
+      startTime: row["Start Time"] || "",
+      endDate,
+      endTime: row["End Time"] || "",
+      allDay: String(row["All Day Event"]).toLowerCase() === "true",
+      description: row.Description || expanded.description || "",
+      aboutTheEvent: expanded.aboutTheEvent || row.Description || "",
+      location: row.Location || expanded.location || "",
+      source: expanded.source || "",
+      technologyContext: expanded.technologyContext || ""
+    };
+  });
 
   const recurring2026Dates = {
     "Father's Day": ["09/06/2026", "09/06/2026"],

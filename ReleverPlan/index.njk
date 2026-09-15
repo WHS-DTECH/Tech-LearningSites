@@ -41,7 +41,7 @@ permalink: /ReleverPlan/
       <h2>Event Details</h2>
       <p>Select an event in the calendar to view its description and source.</p>
     </aside>
-    <aside class="relief-plan-description" aria-live="polite">
+    <aside class="relief-plan-description" id="relief-plan-description" aria-live="polite">
       <h2>Event Description</h2>
       <p>Select an event in the calendar to view its description and source.</p>
     </aside>
@@ -67,6 +67,7 @@ permalink: /ReleverPlan/
     const content = document.getElementById("relief-plan-content");
     const calendar = document.getElementById("relief-plan-calendar");
     const details = document.getElementById("relief-plan-details");
+    const eventDescription = document.getElementById("relief-plan-description");
     const status = document.getElementById("relief-plan-status");
     const logout = document.getElementById("relief-plan-logout");
     const previousButton = document.getElementById("relief-plan-previous");
@@ -104,6 +105,12 @@ permalink: /ReleverPlan/
         <p class="relief-plan-detail-date"><strong>${formatDate(event.startDate)}</strong>${event.endDate && event.endDate !== event.startDate ? ` to <strong>${formatDate(event.endDate)}</strong>` : ""}</p>
         ${event.location ? `<p><strong>Location:</strong> ${escapeHtml(event.location)}</p>` : ""}
         <p class="relief-plan-description">${descriptionHtml(event.description).replace(/\n/g, "<br>")}</p>
+      `;
+
+      const aboutText = event.aboutTheEvent || event.description || "No description available for this event.";
+      eventDescription.innerHTML = `
+        <h2>Event Description</h2>
+        <p class="relief-plan-about">${descriptionHtml(aboutText).replace(/\n/g, "<br>")}</p>
       `;
     };
 
